@@ -1,0 +1,3175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        @font-face {
+            font-family: 'MiFuente';
+            src: url('fuente.ttf') format('truetype');
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding-top: 60px;
+            padding-bottom: 65px;
+            background-color: #000000;
+            min-height: 100vh;
+            font-family: 'MiFuente', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        /* BARRA SUPERIOR */
+        .barra-superior {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+            will-change: transform;
+        }
+        
+        .titulo {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .icono-busqueda {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: -8px;
+        }
+        
+        .icono-busqueda img {
+            width: 22px;
+            height: 22px;
+            filter: brightness(0) invert(1);
+            display: block;
+        }
+        
+        .barra-busqueda {
+            display: none;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+            animation: aparecerBusqueda 0.3s ease;
+        }
+        
+        @keyframes aparecerBusqueda {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* MODIFICADO: Campo de búsqueda con fondo gris oscuro y esquinas redondeadas */
+        .input-busqueda {
+            flex: 1;
+            padding: 10px 15px;
+            background: #1a1a1a; /* Gris oscuro */
+            border: 1px solid #333; /* Borde más oscuro */
+            border-radius: 8px; /* Esquinas un poco redondeadas (no 20px) */
+            color: white;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-busqueda:focus {
+            border-color: #555;
+            background: #222; /* Un poco más claro al enfocar */
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05); /* Sombra más sutil */
+        }
+        
+        /* MODIFICADO: Botón de cerrar con fondo gris oscuro y esquinas redondeadas */
+        .boton-cerrar-busqueda {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px; /* Esquinas un poco redondeadas (no circular) */
+            background: #1a1a1a; /* Gris oscuro igual que el campo */
+            border: 1px solid #333; /* Borde más oscuro */
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        
+        .boton-cerrar-busqueda:hover {
+            background: #222; /* Un poco más claro al hover */
+            transform: scale(1.05); /* Efecto más sutil */
+        }
+        
+        /* BARRA INFERIOR */
+        .barra-inferior {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid #333;
+            z-index: 1000;
+            height: 65px;
+            will-change: transform;
+        }
+        
+        .icono-contenedor {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            height: 100%;
+            gap: 4px;
+        }
+        
+        .barra-inferior img {
+            filter: brightness(0) invert(0.7);
+            cursor: pointer;
+            transition: filter 0.3s;
+        }
+        
+        .icono-contenedor:nth-child(1) img,
+        .icono-contenedor:nth-child(3) img {
+            width: 22px;
+            height: 22px;
+        }
+        
+        .icono-contenedor:nth-child(2) img {
+            width: 28px;
+            height: 28px;
+        }
+        
+        .icono-activo img {
+            filter: brightness(0) invert(1);
+        }
+        
+        .icono-activo .icono-label {
+            color: #ffffff;
+        }
+        
+        .icono-label {
+            color: #aaa;
+            font-size: 10px;
+            margin: 0;
+            transition: color 0.3s;
+            line-height: 1;
+        }
+        
+        /* Modal de contraseña */
+        .modal-contrasena {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .modal-contrasena.activo {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN */
+        .modal-confirmacion-eliminar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .modal-confirmacion-eliminar.activo {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-contenido-eliminar {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            color: white;
+            max-width: 85%;
+            width: 350px;
+            border: 1px solid #444;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .modal-contenido-eliminar h3 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-contenido-eliminar p {
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #ccc;
+        }
+        
+        .botones-modal-eliminar {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .modal-contenido {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            color: white;
+            max-width: 85%;
+            width: 350px;
+            border: 1px solid #444;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .modal-contenido h3 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .input-contrasena {
+            width: 100%;
+            padding: 15px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 12px;
+            color: white;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .input-contrasena:focus {
+            border-color: #666;
+            background: #3a3a3a;
+        }
+        
+        .botones-modal {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .boton-modal {
+            padding: 14px 20px;
+            background: linear-gradient(145deg, #555, #444);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'MiFuente', sans-serif;
+            cursor: pointer;
+            flex: 1;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .boton-modal.boton-eliminar {
+            background: linear-gradient(145deg, #f44336, #e53935);
+        }
+        
+        .boton-modal.boton-eliminar:hover {
+            background: linear-gradient(145deg, #ef5350, #f44336);
+        }
+        
+        .boton-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(145deg, #666, #555);
+        }
+        
+        .boton-modal:active {
+            transform: translateY(0);
+        }
+        
+        /* Mensaje de confirmación */
+        .mensaje-confirmacion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .mensaje-confirmacion.activo {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .mensaje-contenido {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            max-width: 80%;
+            border: 1px solid #444;
+        }
+        
+        /* MODAL PARA VER GRUPO */
+        .modal-ver-grupo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            flex-direction: column;
+            z-index: 2002;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .modal-ver-grupo.activo {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-ver-grupo-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            background: rgba(0, 0, 0, 0.98);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            height: 60px;
+        }
+        
+        .modal-ver-grupo-flecha {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-ver-grupo-flecha img {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .modal-ver-grupo-fecha {
+            color: #aaa;
+            font-size: 14px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .modal-ver-grupo-contenido {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* MODIFICADO: Imagen circular en modal ver grupo */
+        .modal-ver-grupo-imagen-contenedor {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
+            border-radius: 50%; /* Cambiado a circular */
+            overflow: hidden;
+            background: #333;
+            border: 3px solid #444;
+        }
+        
+        .modal-ver-grupo-imagen {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .modal-ver-grupo-nombre {
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+        
+        .modal-ver-grupo-descripcion {
+            color: #ccc;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            text-align: center;
+        }
+        
+        .modal-ver-grupo-etiquetas {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        .modal-ver-grupo-etiqueta {
+            background: #444;
+            color: #aaa;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .modal-ver-grupo-estadisticas {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+        
+        .modal-ver-grupo-estadisticas-titulo {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .modal-ver-grupo-estadisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .modal-ver-grupo-estadistica {
+            text-align: center;
+        }
+        
+        .modal-ver-grupo-estadistica-valor {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .modal-ver-grupo-estadistica-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .modal-ver-grupo-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .modal-ver-grupo-boton-unirse {
+            flex: 1;
+            padding: 15px;
+            background: linear-gradient(145deg, #4caf50, #43a047);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s;
+        }
+        
+        .modal-ver-grupo-boton-unirse:hover {
+            background: linear-gradient(145deg, #66bb6a, #4caf50);
+            transform: translateY(-2px);
+        }
+        
+        .modal-ver-grupo-corazon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #444;
+            flex-shrink: 0;
+        }
+        
+        .modal-ver-grupo-corazon.activo {
+            background: #ff4444;
+            border-color: #ff4444;
+        }
+        
+        .modal-ver-grupo-corazon img {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1);
+            transition: all 0.3s;
+        }
+        
+        .modal-ver-grupo-corazon.activo img {
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Menú lateral */
+        .menu-lateral {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            transition: right 0.3s ease;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .menu-lateral.activo {
+            right: 0;
+        }
+        
+        .menu-superior {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .menu-titulo {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .cerrar-menu {
+            color: #ffffff;
+            font-size: 30px;
+            cursor: pointer;
+            line-height: 30px;
+        }
+        
+        .contenido-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* MODIFICADO: Imagen circular en publicar grupo */
+        .imagen-grupo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 30px;
+            background: #333;
+            border-radius: 50%; /* Cambiado a circular */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 3px solid #444;
+        }
+        
+        .imagen-grupo input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .imagen-placeholder {
+            color: #aaa;
+            font-size: 14px;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .imagen-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%; /* Cambiado a circular */
+            display: none;
+        }
+        
+        .campo {
+            margin-bottom: 20px;
+        }
+        
+        .campo label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .campo input,
+        .campo textarea {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .campo input.error,
+        .campo textarea.error {
+            border-color: #ff4444;
+        }
+        
+        .campo textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .boton-publicar {
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        
+        .boton-publicar button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(145deg, #555, #444);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .boton-publicar button:hover {
+            background: linear-gradient(145deg, #666, #555);
+            transform: translateY(-2px);
+        }
+        
+        /* Vista de Home (Grupos Publicados) */
+        .vista-home {
+            padding: 15px;
+            display: block;
+            background-color: #000000;
+        }
+        
+        /* Vista de publicación */
+        .vista-publicacion {
+            padding: 15px;
+            display: none;
+            padding-bottom: 80px;
+            background-color: #000000;
+        }
+        
+        /* Vista de administrador */
+        .vista-admin {
+            padding: 15px;
+            display: none;
+            padding-bottom: 80px;
+            background-color: #000000;
+        }
+        
+        /* MODIFICADO: Tarjetas en DOS COLUMNAS - DISEÑO SIMPLIFICADO */
+        .grid-grupos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columnas */
+            gap: 12px; /* Espacio entre tarjetas */
+        }
+        
+        .tarjeta-grupo {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #444;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column; /* Cambiado a columna */
+            padding: 12px;
+            position: relative;
+            min-height: 250px; /* Reducido un poco */
+            will-change: transform;
+        }
+        
+        .tarjeta-grupo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* MODIFICADO: Imagen cuadrada 1:1 en la parte superior */
+        .tarjeta-imagen-contenedor {
+            width: 100%;
+            height: 120px; /* Altura reducida */
+            border-radius: 12px;
+            overflow: hidden;
+            background: #333;
+            border: 2px solid #444;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .tarjeta-imagen {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tarjeta-imagen.cargada {
+            opacity: 1;
+        }
+        
+        .tarjeta-contenido {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* MODIFICADO: Título más grande y centrado - MÁS CERCA */
+        .tarjeta-titulo {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 2px 0; /* MUY REDUCIDO: de 5px a 2px */
+            line-height: 1.3;
+            text-align: center;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 36px;
+        }
+        
+        /* MODIFICADO: Descripción MUY cerca del título */
+        .tarjeta-descripcion {
+            color: #aaa;
+            font-size: 11px; /* Tamaño pequeño como en admin */
+            line-height: 1.3;
+            margin-bottom: 10px; /* Reducido: de 12px a 10px */
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* Mostrar hasta 3 líneas */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 42px; /* 3 líneas * 14px (tamaño de fuente * line-height) */
+            text-align: center; /* Añadido: alineación centrada */
+        }
+        
+        /* MODIFICADO: Botón Ver Grupo - centrado y bien ajustado */
+        .boton-ver-grupo {
+            width: 100%;
+            padding: 10px 12px;
+            background: linear-gradient(145deg, #555, #444);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s;
+            margin-top: auto; /* Empuja el botón hacia abajo */
+        }
+        
+        .boton-ver-grupo:hover {
+            background: linear-gradient(145deg, #666, #555);
+            transform: translateY(-1px);
+        }
+        
+        /* Estadísticas en tarjetas de usuario */
+        .estadisticas-grupo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #444;
+        }
+        
+        .estadistica-grupo {
+            text-align: center;
+        }
+        
+        .estadistica-valor-grupo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .estadistica-label-grupo {
+            font-size: 10px;
+            color: #aaa;
+        }
+        
+        /* Botones de acción en tarjetas de usuario */
+        .acciones-grupo {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .boton-editar {
+            flex: 1;
+            padding: 8px;
+            background: linear-gradient(145deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .boton-editar:hover {
+            background: linear-gradient(145deg, #42A5F5, #2196F3);
+            transform: translateY(-1px);
+        }
+        
+        /* AÑADIDO: Botón eliminar en tarjetas de usuario */
+        .boton-eliminar-usuario {
+            flex: 1;
+            padding: 8px;
+            background: linear-gradient(145deg, #f44336, #e53935);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .boton-eliminar-usuario:hover {
+            background: linear-gradient(145deg, #ef5350, #f44336);
+            transform: translateY(-1px);
+        }
+        
+        /* Sin grupos */
+        .sin-datos {
+            color: #888;
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 16px;
+            grid-column: 1 / -1;
+        }
+        
+        /* Vista de administrador */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .admin-titulo {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .boton-salir-admin {
+            padding: 12px 20px;
+            background: linear-gradient(145deg, #555, #444);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'MiFuente', sans-serif;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .boton-salir-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(145deg, #666, #555);
+        }
+        
+        /* Estadísticas */
+        .estadisticas {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+            color: white;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .estadisticas-titulo {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .estadisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .estadistica-item {
+            background: #333;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #555;
+            transition: transform 0.3s;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .estadistica-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .estadistica-valor {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+        }
+        
+        .estadistica-label {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.2;
+            word-wrap: break-word;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            padding: 0 3px;
+        }
+        
+        /* Tabs de administrador */
+        .admin-tabs {
+            display: flex;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+        
+        .admin-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .admin-tab.activo {
+            background: #333;
+            border-bottom: 3px solid #555;
+        }
+        
+        .admin-tab:hover {
+            background: #333;
+        }
+        
+        .contenido-tab {
+            display: none;
+        }
+        
+        .contenido-tab.activo {
+            display: block;
+        }
+        
+        /* Grid de grupos publicados en admin */
+        .grid-grupos-admin {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .tarjeta-grupo-admin {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+        
+        .tarjeta-contenido-admin {
+            padding: 15px;
+        }
+        
+        .tarjeta-titulo-admin {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .tarjeta-usuario-admin {
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .boton-eliminar-grupo {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(145deg, #f44336, #e53935);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'MiFuente', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .boton-eliminar-grupo:hover {
+            background: linear-gradient(145deg, #ef5350, #f44336);
+            transform: translateY(-1px);
+        }
+        
+        /* Publicaciones de usuario */
+        .publicacion-grupo-usuario {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
+        }
+        
+        .grupo-header-usuario {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .grupo-imagen-usuario {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            background: #333;
+        }
+        
+        .grupo-nombre-usuario {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .grupo-descripcion-usuario {
+            color: #ccc;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+        
+        .grupo-etiquetas-usuario {
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        
+        .grupo-enlace-usuario {
+            color: #4caf50;
+            font-size: 12px;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .grupo-estado-usuario {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .estado-pendiente {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .estado-publicado {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .estado-rechazado {
+            background: #f44336;
+            color: white;
+        }
+        
+        .estado-eliminado {
+            background: #757575;
+            color: white;
+        }
+        
+        .estado-eliminado-usuario {
+            background: #9c27b0;
+            color: white;
+        }
+        
+        /* Skeleton loader */
+        .skeleton {
+            background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 12px;
+        }
+        
+        @keyframes skeleton-loading {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        
+        .skeleton-tarjeta {
+            height: 250px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+        }
+        
+        .skeleton-text {
+            height: 14px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        
+        .skeleton-text-small {
+            height: 10px;
+            width: 70%;
+            margin: 0 auto 6px;
+            border-radius: 4px;
+        }
+        
+        .skeleton-button {
+            height: 35px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="barra-superior">
+        <div class="titulo" id="titulo">
+            <span>❤️‍🔥 ʀᴇᴅᴠɪᴇᴡ</span>
+        </div>
+        
+        <div class="barra-busqueda" id="barraBusqueda">
+            <input type="text" class="input-busqueda" id="inputBusqueda" placeholder="Buscar por nombre o etiquetas...">
+            <button class="boton-cerrar-busqueda" id="botonCerrarBusqueda">×</button>
+        </div>
+        
+        <div class="icono-busqueda" id="iconoBusqueda">
+            <img src="https://i.ibb.co/n84F5wwC/lupa.png" alt="Buscar">
+        </div>
+    </div>
+    
+    <div class="modal-contrasena" id="modalContrasena">
+        <div class="modal-contenido">
+            <h3>Modo Administrador</h3>
+            <input type="password" class="input-contrasena" id="inputContrasena" placeholder="Ingresa la contraseña">
+            <div class="botones-modal">
+                <button class="boton-modal" id="btnCancelar">Cancelar</button>
+                <button class="boton-modal" id="btnEntrarAdmin">Acceder</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-confirmacion-eliminar" id="modalConfirmacionEliminar">
+        <div class="modal-contenido-eliminar">
+            <h3>Confirmar Eliminación</h3>
+            <p id="confirmacionTexto">¿Estás seguro de que quieres eliminar este grupo? El grupo será eliminado para todos los usuarios excepto para quien lo publicó.</p>
+            <div class="botones-modal-eliminar">
+                <button class="boton-modal" id="btnCancelarEliminar">Cancelar</button>
+                <button class="boton-modal boton-eliminar" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-ver-grupo" id="modalVerGrupo">
+        <div class="modal-ver-grupo-header">
+            <div class="modal-ver-grupo-flecha" id="modalVerGrupoFlecha">
+                <img src="https://i.ibb.co/HL2wKW3G/flecha.png" alt="Volver">
+            </div>
+            <div class="modal-ver-grupo-fecha" id="modalVerGrupoFecha"></div>
+        </div>
+        
+        <div class="modal-ver-grupo-contenido">
+            <div class="modal-ver-grupo-imagen-contenedor">
+                <img id="modalVerGrupoImagen" class="modal-ver-grupo-imagen" src="" alt="">
+            </div>
+            
+            <div class="modal-ver-grupo-nombre" id="modalVerGrupoNombre"></div>
+            
+            <div class="modal-ver-grupo-descripcion" id="modalVerGrupoDescripcion"></div>
+            
+            <div class="modal-ver-grupo-etiquetas" id="modalVerGrupoEtiquetas"></div>
+            
+            <div class="modal-ver-grupo-estadisticas">
+                <div class="modal-ver-grupo-estadisticas-titulo">Estadísticas del Grupo</div>
+                <div class="modal-ver-grupo-estadisticas-grid">
+                    <div class="modal-ver-grupo-estadistica">
+                        <div class="modal-ver-grupo-estadistica-valor" id="modalVerGrupoVisualizaciones">0</div>
+                        <div class="modal-ver-grupo-estadistica-label">Visualizaciones</div>
+                    </div>
+                    <div class="modal-ver-grupo-estadistica">
+                        <div class="modal-ver-grupo-estadistica-valor" id="modalVerGrupoUniones">0</div>
+                        <div class="modal-ver-grupo-estadistica-label">Uniones</div>
+                    </div>
+                    <div class="modal-ver-grupo-estadistica">
+                        <div class="modal-ver-grupo-estadistica-valor" id="modalVerGrupoCorazones">0</div>
+                        <div class="modal-ver-grupo-estadistica-label">Me gusta</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-ver-grupo-footer">
+            <a href="#" target="_blank" class="modal-ver-grupo-boton-unirse" id="modalVerGrupoBotonUnirse">Unirse al grupo</a>
+            <div class="modal-ver-grupo-corazon" id="modalVerGrupoCorazon">
+                <img src="https://i.ibb.co/pv2KTQ0Q/corazon.png" alt="Corazón">
+            </div>
+        </div>
+    </div>
+    
+    <div class="mensaje-confirmacion" id="mensajeConfirmacion">
+        <div class="mensaje-contenido" id="mensajeTexto">
+            Tu grupo ha sido enviado a revisión. Puedes ver el estado de tu grupo en publicación.
+        </div>
+    </div>
+    
+    <div class="menu-lateral" id="menuLateral">
+        <div class="menu-superior">
+            <div class="menu-titulo" id="tituloMenu">Publicar grupo</div>
+            <div class="cerrar-menu" id="cerrarMenu">×</div>
+        </div>
+        <div class="contenido-menu">
+            <div class="imagen-grupo">
+                <input type="file" id="imagenInput" accept="image/*">
+                <div class="imagen-placeholder">Elegir imagen</div>
+                <img id="imagenPreview" class="imagen-preview" src="" alt="Vista previa">
+            </div>
+            
+            <div class="campo">
+                <label for="nombreGrupo">Nombre del grupo</label>
+                <input type="text" id="nombreGrupo" placeholder="Escribe el nombre">
+            </div>
+            
+            <div class="campo">
+                <label for="descripcion">Descripción</label>
+                <textarea id="descripcion" placeholder="Escribe la descripción"></textarea>
+            </div>
+            
+            <div class="campo">
+                <label for="enlaceGrupo">Enlace del grupo</label>
+                <input type="url" id="enlaceGrupo" placeholder="https://ejemplo.com/grupo">
+            </div>
+            
+            <div class="campo">
+                <label for="etiquetas">Etiquetas</label>
+                <input type="text" id="etiquetas" placeholder="Ej: Amistad, Hentai, Anime">
+            </div>
+            
+            <div class="boton-publicar">
+                <button id="btnPublicar">Publicar</button>
+                <button id="btnActualizar" style="display: none;">Actualizar y Reenviar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="vista-home" id="vistaHome">
+        <div class="grid-grupos" id="gridGrupos">
+            </div>
+    </div>
+    
+    <div class="vista-publicacion" id="vistaPublicacion">
+        </div>
+    
+    <div class="vista-admin" id="vistaAdmin">
+        <div class="admin-header">
+            <div class="admin-titulo">Panel de Administración</div>
+            <button class="boton-salir-admin" id="btnSalirAdmin">Salir del Modo Admin</button>
+        </div>
+        
+        <div class="estadisticas">
+            <div class="estadisticas-titulo">Estadísticas de la Plataforma</div>
+            <div class="estadisticas-grid" id="estadisticasGrid">
+                </div>
+        </div>
+        
+        <div class="admin-tabs">
+            <div class="admin-tab activo" data-tab="grupospublicados">Grupos Publicados</div>
+            <div class="admin-tab" data-tab="solicitudes">Solicitudes</div>
+        </div>
+        
+        <div class="contenido-tab activo" id="tabGrupospublicados">
+            <div class="grid-grupos-admin" id="listaGruposPublicadosAdmin">
+                </div>
+        </div>
+        
+        <div class="contenido-tab" id="tabSolicitudes">
+            <div id="listaSolicitudes">
+                </div>
+        </div>
+    </div>
+    
+    <div class="barra-inferior">
+        <div class="icono-contenedor icono-activo" id="iconoHomeContenedor">
+            <img src="https://i.ibb.co/Z1wD350f/home.png" alt="Home" id="iconoHome">
+            <div class="icono-label">Home</div>
+        </div>
+        <div class="icono-contenedor" id="iconoMasContenedor">
+            <img src="https://i.ibb.co/qF03jpFH/mas.png" alt="Más" id="iconoMas">
+            <div class="icono-label">Publicar</div>
+        </div>
+        <div class="icono-contenedor" id="iconoPublicacionContenedor">
+            <img src="https://i.ibb.co/7JZmyK0w/publicacion.png" alt="Publicación" id="iconoPublicacion">
+            <div class="icono-label">Mis Grupos</div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6SoLg-a8bZG9KSdFRH4NyoBDCps0dYCg",
+            authDomain: "redview-31953.firebaseapp.com",
+            databaseURL: "https://redview-31953-default-rtdb.firebaseio.com",
+            projectId: "redview-31953",
+            storageBucket: "redview-31953.firebasestorage.app",
+            messagingSenderId: "316847343520",
+            appId: "1:316847343520:web:d05a6c2b5cccfd1b57c6c5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // NO HAY IMAGEN POR DEFECTO - solo se usa la que selecciona el usuario
+        const IMAGEN_POR_DEFECTO = '';
+        
+        // Cache para almacenar datos
+        const cache = {
+            grupos: null,
+            estadisticas: null,
+            ultimaActualizacion: null,
+            TTL: 5 * 60 * 1000 // 5 minutos
+        };
+        
+        // Generar ID único de usuario
+        function generarUserId() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 9);
+            return 'user_' + timestamp + '_' + random;
+        }
+        
+        // Obtener o crear ID de usuario
+        let userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = generarUserId();
+            localStorage.setItem('userId', userId);
+        }
+        
+        // Registrar usuario en Firebase (si no existe)
+        function registrarUsuario() {
+            const userRef = database.ref('usuarios/' + userId);
+            userRef.once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    // Crear nuevo usuario
+                    const usuarioData = {
+                        id: userId,
+                        fechaRegistro: new Date().toISOString(),
+                        bloqueado: false,
+                        ultimaConexion: Date.now(),
+                        gruposPublicados: 0
+                    };
+                    userRef.set(usuarioData);
+                } else {
+                    // Actualizar última conexión
+                    userRef.update({
+                        ultimaConexion: Date.now()
+                    });
+                }
+            });
+        }
+        
+        // Registrar conexión del usuario
+        function registrarConexion() {
+            const conexionRef = database.ref('conexiones/' + userId);
+            conexionRef.set({
+                userId: userId,
+                timestamp: Date.now()
+            });
+            
+            // Eliminar automáticamente después de 5 minutos (300000 ms)
+            setTimeout(() => {
+                conexionRef.remove();
+            }, 300000);
+        }
+        
+        // Elementos del DOM
+        const titulo = document.getElementById('titulo');
+        const modalContrasena = document.getElementById('modalContrasena');
+        const inputContrasena = document.getElementById('inputContrasena');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const btnEntrarAdmin = document.getElementById('btnEntrarAdmin');
+        const mensajeConfirmacion = document.getElementById('mensajeConfirmacion');
+        const mensajeTexto = document.getElementById('mensajeTexto');
+        const vistaHome = document.getElementById('vistaHome');
+        const gridGrupos = document.getElementById('gridGrupos');
+        const vistaPublicacion = document.getElementById('vistaPublicacion');
+        const vistaAdmin = document.getElementById('vistaAdmin');
+        const listaSolicitudes = document.getElementById('listaSolicitudes');
+        const listaGruposPublicadosAdmin = document.getElementById('listaGruposPublicadosAdmin');
+        const estadisticasGrid = document.getElementById('estadisticasGrid');
+        const iconoHome = document.getElementById('iconoHome');
+        const iconoMas = document.getElementById('iconoMas');
+        const iconoPublicacion = document.getElementById('iconoPublicacion');
+        const btnSalirAdmin = document.getElementById('btnSalirAdmin');
+        const iconoHomeContenedor = document.getElementById('iconoHomeContenedor');
+        const iconoMasContenedor = document.getElementById('iconoMasContenedor');
+        const iconoPublicacionContenedor = document.getElementById('iconoPublicacionContenedor');
+        const iconoBusqueda = document.getElementById('iconoBusqueda');
+        
+        // Elementos para búsqueda
+        const barraBusqueda = document.getElementById('barraBusqueda');
+        const inputBusqueda = document.getElementById('inputBusqueda');
+        const botonCerrarBusqueda = document.getElementById('botonCerrarBusqueda');
+        
+        // Modal de confirmación de eliminación
+        const modalConfirmacionEliminar = document.getElementById('modalConfirmacionEliminar');
+        const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
+        const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
+        const confirmacionTexto = document.getElementById('confirmacionTexto');
+        
+        // Elementos del formulario de publicación/edición
+        const tituloMenu = document.getElementById('tituloMenu');
+        const imagenInput = document.getElementById('imagenInput');
+        const imagenPlaceholder = document.querySelector('.imagen-placeholder');
+        const imagenPreview = document.getElementById('imagenPreview');
+        const nombreGrupoInput = document.getElementById('nombreGrupo');
+        const descripcionInput = document.getElementById('descripcion');
+        const enlaceGrupoInput = document.getElementById('enlaceGrupo');
+        const etiquetasInput = document.getElementById('etiquetas');
+        const btnPublicar = document.getElementById('btnPublicar');
+        const btnActualizar = document.getElementById('btnActualizar');
+        
+        // Elementos del modal de ver grupo
+        const modalVerGrupo = document.getElementById('modalVerGrupo');
+        const modalVerGrupoFlecha = document.getElementById('modalVerGrupoFlecha');
+        const modalVerGrupoImagen = document.getElementById('modalVerGrupoImagen');
+        const modalVerGrupoNombre = document.getElementById('modalVerGrupoNombre');
+        const modalVerGrupoDescripcion = document.getElementById('modalVerGrupoDescripcion');
+        const modalVerGrupoEtiquetas = document.getElementById('modalVerGrupoEtiquetas');
+        const modalVerGrupoBotonUnirse = document.getElementById('modalVerGrupoBotonUnirse');
+        const modalVerGrupoCorazon = document.getElementById('modalVerGrupoCorazon');
+        const modalVerGrupoVisualizaciones = document.getElementById('modalVerGrupoVisualizaciones');
+        const modalVerGrupoUniones = document.getElementById('modalVerGrupoUniones');
+        const modalVerGrupoCorazones = document.getElementById('modalVerGrupoCorazones');
+        const modalVerGrupoFecha = document.getElementById('modalVerGrupoFecha');
+        
+        // Variables globales
+        let grupoEditando = null;
+        let grupoAEliminarId = null;
+        let grupoModalActual = null;
+        let imagenBase64 = '';
+        let vistaActiva = 'home';
+        let esAdmin = localStorage.getItem('esAdmin') === 'true';
+        let todosLosGrupos = [];
+        let grupoAEliminarPorUsuarioId = null; // Variable para eliminar grupo desde vista usuario
+        let cargandoMasGrupos = false;
+        let ultimoGrupoCargado = 0;
+        const GRUPOS_POR_CARGA = 10;
+        
+        // OBJETO PARA CONTROLAR INTERACCIONES POR USUARIO
+        const interaccionesUsuario = {};
+        
+        // Inicializar interacciones desde localStorage
+        function inicializarInteracciones() {
+            const interaccionesGuardadas = localStorage.getItem('interaccionesUsuario');
+            if (interaccionesGuardadas) {
+                try {
+                    const parsed = JSON.parse(interaccionesGuardadas);
+                    for (const grupoId in parsed) {
+                        interaccionesUsuario[grupoId] = {
+                            vistas: new Set(parsed[grupoId].vistas || []),
+                            uniones: new Set(parsed[grupoId].uniones || []),
+                            corazones: new Set(parsed[grupoId].corazones || [])
+                        };
+                    }
+                } catch (e) {
+                    console.error('Error al cargar interacciones:', e);
+                }
+            }
+        }
+        
+        // Guardar interacciones en localStorage
+        function guardarInteracciones() {
+            const paraGuardar = {};
+            for (const grupoId in interaccionesUsuario) {
+                paraGuardar[grupoId] = {
+                    vistas: Array.from(interaccionesUsuario[grupoId].vistas),
+                    uniones: Array.from(interaccionesUsuario[grupoId].uniones),
+                    corazones: Array.from(interaccionesUsuario[grupoId].corazones)
+                };
+            }
+            localStorage.setItem('interaccionesUsuario', JSON.stringify(paraGuardar));
+        }
+        
+        // Registrar usuario y conexión
+        registrarUsuario();
+        registrarConexion();
+        inicializarInteracciones();
+        
+        // Si ya es admin, cambiar el título
+        if (esAdmin) {
+            titulo.querySelector('span').textContent = '❤️‍🔥 ʀᴇᴅᴠɪᴇᴡ ﹙ ᴀᴅᴍɪɴ ﹚';
+        }
+        
+        // Mostrar skeleton loader inicial
+        function mostrarSkeletonLoader() {
+            gridGrupos.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'skeleton skeleton-tarjeta';
+                gridGrupos.appendChild(skeleton);
+            }
+        }
+        
+        // Cargar grupos publicados al iniciar
+        mostrarSkeletonLoader();
+        cargarGruposPublicados();
+        actualizarIconosActivos('home');
+        
+        // Abrir modal de contraseña al hacer clic en el título
+        titulo.addEventListener('click', function() {
+            if (esAdmin) {
+                mostrarVistaAdmin();
+            } else {
+                modalContrasena.classList.add('activo');
+                inputContrasena.focus();
+            }
+        });
+        
+        // Cancelar modal de contraseña
+        btnCancelar.addEventListener('click', function() {
+            modalContrasena.classList.remove('activo');
+            inputContrasena.value = '';
+        });
+        
+        // Entrar como administrador
+        btnEntrarAdmin.addEventListener('click', function() {
+            const contrasena = inputContrasena.value;
+            if (contrasena === '200506') {
+                esAdmin = true;
+                localStorage.setItem('esAdmin', 'true');
+                titulo.querySelector('span').textContent = '❤️‍🔥 ʀᴇᴅᴠɪᴇᴡ ﹙ ᴀᴅᴍɪɴ ﹚';
+                modalContrasena.classList.remove('activo');
+                inputContrasena.value = '';
+                mostrarVistaAdmin();
+            } else {
+                alert('Contraseña incorrecta');
+                inputContrasena.value = '';
+                inputContrasena.focus();
+            }
+        });
+        
+        // Salir del modo administrador
+        btnSalirAdmin.addEventListener('click', function() {
+            esAdmin = false;
+            localStorage.removeItem('esAdmin');
+            titulo.querySelector('span').textContent = '❤️‍🔥 ʀᴇᴅᴠɪᴇᴡ';
+            ocultarTodasLasVistas();
+            mostrarVistaHome();
+        });
+        
+        // Eventos para el modal de confirmación de eliminación
+        btnCancelarEliminar.addEventListener('click', function() {
+            modalConfirmacionEliminar.classList.remove('activo');
+            grupoAEliminarId = null;
+            grupoAEliminarPorUsuarioId = null;
+        });
+        
+        btnConfirmarEliminar.addEventListener('click', function() {
+            if (grupoAEliminarId) {
+                eliminarGrupoConfirmado();
+            } else if (grupoAEliminarPorUsuarioId) {
+                eliminarGrupoPorUsuarioConfirmado();
+            }
+        });
+        
+        // Eventos para el modal de ver grupo
+        modalVerGrupoFlecha.addEventListener('click', function() {
+            modalVerGrupo.classList.remove('activo');
+            grupoModalActual = null;
+        });
+        
+        modalVerGrupoBotonUnirse.addEventListener('click', function(e) {
+            if (grupoModalActual) {
+                const grupoId = grupoModalActual.id;
+                
+                // Inicializar si no existe
+                if (!interaccionesUsuario[grupoId]) {
+                    interaccionesUsuario[grupoId] = {
+                        vistas: new Set(),
+                        uniones: new Set(),
+                        corazones: new Set()
+                    };
+                }
+                
+                // Verificar si ya se ha unido
+                if (!interaccionesUsuario[grupoId].uniones.has(userId)) {
+                    // Incrementar contador de uniones
+                    incrementarEstadistica(grupoId, 'uniones');
+                    
+                    // Registrar que este usuario se ha unido
+                    interaccionesUsuario[grupoId].uniones.add(userId);
+                    guardarInteracciones();
+                    
+                    // Actualizar contador en modal
+                    const nuevasUniones = (grupoModalActual.uniones || 0) + 1;
+                    modalVerGrupoUniones.textContent = nuevasUniones;
+                    grupoModalActual.uniones = nuevasUniones;
+                    
+                    // Actualizar estadísticas en la tarjeta
+                    actualizarEstadisticasTarjeta(grupoId);
+                }
+            }
+        });
+        
+        modalVerGrupoCorazon.addEventListener('click', function() {
+            if (!grupoModalActual) return;
+            
+            const grupoId = grupoModalActual.id;
+            
+            // Inicializar si no existe
+            if (!interaccionesUsuario[grupoId]) {
+                interaccionesUsuario[grupoId] = {
+                    vistas: new Set(),
+                    uniones: new Set(),
+                    corazones: new Set()
+                };
+            }
+            
+            const haDadoCorazon = interaccionesUsuario[grupoId].corazones.has(userId);
+            
+            if (haDadoCorazon) {
+                // Quitar corazón
+                decrementarEstadistica(grupoId, 'corazones');
+                interaccionesUsuario[grupoId].corazones.delete(userId);
+                modalVerGrupoCorazon.classList.remove('activo');
+                
+                // Actualizar contador en modal
+                const nuevosCorazones = Math.max(0, (grupoModalActual.corazones || 0) - 1);
+                modalVerGrupoCorazones.textContent = nuevosCorazones;
+                grupoModalActual.corazones = nuevosCorazones;
+                actualizarCorazonEnTarjeta(grupoId, false);
+            } else {
+                // Dar corazón
+                incrementarEstadistica(grupoId, 'corazones');
+                interaccionesUsuario[grupoId].corazones.add(userId);
+                modalVerGrupoCorazon.classList.add('activo');
+                
+                // Actualizar contador en modal
+                const nuevosCorazones = (grupoModalActual.corazones || 0) + 1;
+                modalVerGrupoCorazones.textContent = nuevosCorazones;
+                grupoModalActual.corazones = nuevosCorazones;
+                actualizarCorazonEnTarjeta(grupoId, true);
+            }
+            
+            guardarInteracciones();
+            
+            // Actualizar estadísticas en la tarjeta
+            actualizarEstadisticasTarjeta(grupoId);
+        });
+        
+        // Eventos para el sistema de búsqueda
+        iconoBusqueda.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Solo activar búsqueda en la vista Home
+            if (vistaActiva !== 'home') return;
+            
+            activarBusqueda();
+        });
+        
+        botonCerrarBusqueda.addEventListener('click', function() {
+            desactivarBusqueda();
+        });
+        
+        inputBusqueda.addEventListener('input', function() {
+            filtrarGrupos(this.value);
+        });
+        
+        // Permitir cerrar búsqueda con la tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && barraBusqueda.style.display === 'flex') {
+                desactivarBusqueda();
+            }
+        });
+        
+        // Función para activar el modo búsqueda
+        function activarBusqueda() {
+            // Ocultar título y lupa, mostrar barra de búsqueda
+            titulo.style.display = 'none';
+            iconoBusqueda.style.display = 'none';
+            barraBusqueda.style.display = 'flex';
+            
+            // Enfocar el input de búsqueda
+            setTimeout(() => {
+                inputBusqueda.focus();
+            }, 50);
+        }
+        
+        // Función para desactivar el modo búsqueda
+        function desactivarBusqueda() {
+            // Mostrar título, ocultar barra de búsqueda
+            titulo.style.display = 'flex';
+            barraBusqueda.style.display = 'none';
+            
+            // Limpiar input y mostrar todos los grupos
+            inputBusqueda.value = '';
+            mostrarGruposEnHome(todosLosGrupos);
+            
+            // CORRECCIÓN: Solo volver a mostrar la lupa si estamos en Home
+            if (vistaActiva === 'home') {
+                iconoBusqueda.style.display = 'flex';
+            } else {
+                iconoBusqueda.style.display = 'none';
+            }
+        }
+        
+        // Función para filtrar grupos
+        function filtrarGrupos(terminoBusqueda) {
+            if (!terminoBusqueda.trim()) {
+                // Si no hay término de búsqueda, mostrar todos
+                mostrarGruposEnHome(todosLosGrupos);
+                return;
+            }
+            
+            const termino = terminoBusqueda.toLowerCase().trim();
+            
+            // Filtrar grupos
+            const gruposFiltrados = todosLosGrupos.filter(grupo => {
+                // Buscar en el nombre
+                const nombreCoincide = grupo.nombre.toLowerCase().includes(termino);
+                
+                // Buscar en las etiquetas
+                let etiquetasCoinciden = false;
+                if (grupo.etiquetas) {
+                    const etiquetasArray = grupo.etiquetas.toLowerCase().split(',').map(e => e.trim());
+                    etiquetasCoinciden = etiquetasArray.some(etiqueta => etiqueta.includes(termino));
+                }
+                
+                return nombreCoincide || etiquetasCoinciden;
+            });
+            
+            // Mostrar grupos filtrados
+            mostrarGruposEnHome(gruposFiltrados);
+        }
+        
+        // Función para actualizar los íconos activos
+        function actualizarIconosActivos(vista) {
+            vistaActiva = vista;
+            
+            // Remover la clase activa de todos los íconos
+            iconoHomeContenedor.classList.remove('icono-activo');
+            iconoMasContenedor.classList.remove('icono-activo');
+            iconoPublicacionContenedor.classList.remove('icono-activo');
+            
+            // Agregar la clase activa al ícono correspondiente
+            switch(vista) {
+                case 'home':
+                    iconoHomeContenedor.classList.add('icono-activo');
+                    break;
+                case 'publicar':
+                    iconoMasContenedor.classList.add('icono-activo');
+                    break;
+                case 'misgrupos':
+                    iconoPublicacionContenedor.classList.add('icono-activo');
+                    break;
+                case 'admin':
+                    // No hay ícono para admin en la barra
+                    break;
+            }
+            
+            // CORRECCIÓN: Controlar visibilidad del icono de búsqueda
+            if (vista === 'home') {
+                // Solo mostrar si la barra de búsqueda NO está activa
+                if (barraBusqueda.style.display !== 'flex') {
+                    iconoBusqueda.style.display = 'flex';
+                }
+            } else {
+                iconoBusqueda.style.display = 'none';
+            }
+        }
+        
+        // Ocultar todas las vistas
+        function ocultarTodasLasVistas() {
+            vistaHome.style.display = 'none';
+            vistaPublicacion.style.display = 'none';
+            vistaAdmin.style.display = 'none';
+            document.getElementById('menuLateral').classList.remove('activo');
+            
+            // Asegurarse de que el modo búsqueda esté desactivado
+            if (barraBusqueda.style.display === 'flex') {
+                desactivarBusqueda();
+            }
+        }
+        
+        // Mostrar vista de Home
+        function mostrarVistaHome() {
+            ocultarTodasLasVistas();
+            vistaHome.style.display = 'block';
+            cargarGruposPublicados();
+            actualizarIconosActivos('home');
+        }
+        
+        // Mostrar vista de administrador
+        function mostrarVistaAdmin() {
+            ocultarTodasLasVistas();
+            vistaAdmin.style.display = 'block';
+            cargarEstadisticas();
+            cargarGruposPublicadosAdmin();
+            cargarSolicitudes();
+            actualizarIconosActivos('admin');
+        }
+        
+        // Función para mezclar array aleatoriamente (Fisher-Yates)
+        function mezclarArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Cargar grupos publicados para Home con caché y carga diferida
+        function cargarGruposPublicados() {
+            // Verificar caché
+            const ahora = Date.now();
+            if (cache.grupos && cache.ultimaActualizacion && (ahora - cache.ultimaActualizacion) < cache.TTL) {
+                mostrarGruposEnHome(cache.grupos.slice(0, GRUPOS_POR_CARGA));
+                todosLosGrupos = cache.grupos;
+                ultimoGrupoCargado = GRUPOS_POR_CARGA;
+                return;
+            }
+            
+            database.ref('grupos').orderByChild('estado').equalTo('publicado').once('value').then((snapshot) => {
+                if (snapshot.numChildren() === 0) {
+                    gridGrupos.innerHTML = '<div class="sin-datos">No hay grupos publicados aún. Sé el primero en publicar uno.</div>';
+                    return;
+                }
+                
+                const grupos = [];
+                snapshot.forEach((childSnapshot) => {
+                    const grupo = childSnapshot.val();
+                    grupo.id = childSnapshot.key;
+                    
+                    // Solo mostrar grupos que no estén eliminados por el usuario
+                    if (grupo.estado !== 'eliminado_usuario') {
+                        grupos.push(grupo);
+                    }
+                });
+                
+                // Mezclar los grupos aleatoriamente
+                const gruposMezclados = mezclarArray(grupos);
+                
+                // Guardar en caché
+                cache.grupos = gruposMezclados;
+                cache.ultimaActualizacion = Date.now();
+                
+                // Guardar todos los grupos para búsqueda
+                todosLosGrupos = [...gruposMezclados];
+                
+                // Mostrar solo los primeros grupos
+                mostrarGruposEnHome(gruposMezclados.slice(0, GRUPOS_POR_CARGA));
+                ultimoGrupoCargado = GRUPOS_POR_CARGA;
+                
+                // Configurar scroll infinito
+                configurarScrollInfinito();
+            });
+        }
+        
+        // Configurar scroll infinito
+        function configurarScrollInfinito() {
+            const gridContainer = document.querySelector('.vista-home');
+            
+            // Remover listener anterior si existe
+            gridContainer.removeEventListener('scroll', manejarScroll);
+            
+            // Agregar nuevo listener
+            gridContainer.addEventListener('scroll', manejarScroll);
+            
+            function manejarScroll() {
+                if (cargandoMasGrupos) return;
+                
+                const scrollTop = gridContainer.scrollTop;
+                const scrollHeight = gridContainer.scrollHeight;
+                const clientHeight = gridContainer.clientHeight;
+                
+                // Cargar más grupos cuando estemos cerca del final
+                if (scrollTop + clientHeight >= scrollHeight - 100) {
+                    cargarMasGrupos();
+                }
+            }
+        }
+        
+        // Cargar más grupos
+        function cargarMasGrupos() {
+            if (cargandoMasGrupos || !cache.grupos || ultimoGrupoCargado >= cache.grupos.length) return;
+            
+            cargandoMasGrupos = true;
+            
+            // Mostrar skeleton loader
+            for (let i = 0; i < 2; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'skeleton skeleton-tarjeta';
+                gridGrupos.appendChild(skeleton);
+            }
+            
+            // Simular carga (en producción, esto sería instantáneo)
+            setTimeout(() => {
+                const inicio = ultimoGrupoCargado;
+                const fin = Math.min(ultimoGrupoCargado + GRUPOS_POR_CARGA, cache.grupos.length);
+                const gruposACargar = cache.grupos.slice(inicio, fin);
+                
+                // Remover skeletons
+                const skeletons = gridGrupos.querySelectorAll('.skeleton');
+                skeletons.forEach(skeleton => skeleton.remove());
+                
+                // Agregar nuevos grupos
+                gruposACargar.forEach(grupo => {
+                    crearTarjetaGrupo(grupo);
+                });
+                
+                ultimoGrupoCargado = fin;
+                cargandoMasGrupos = false;
+                
+                // Si aún hay más grupos, agregar más skeletons
+                if (ultimoGrupoCargado < cache.grupos.length) {
+                    for (let i = 0; i < 2; i++) {
+                        const skeleton = document.createElement('div');
+                        skeleton.className = 'skeleton skeleton-tarjeta';
+                        gridGrupos.appendChild(skeleton);
+                    }
+                }
+            }, 300);
+        }
+        
+        // Crear tarjeta de grupo individual
+        function crearTarjetaGrupo(grupo) {
+            const tarjeta = document.createElement('div');
+            tarjeta.className = 'tarjeta-grupo';
+            
+            // Solo mostrar imagen si existe
+            const imagenHTML = grupo.imagen && grupo.imagen.trim() !== '' 
+                ? `<img src="${grupo.imagen}" 
+                         class="tarjeta-imagen" alt="${grupo.nombre}" 
+                         loading="lazy"
+                         onload="this.classList.add('cargada')"
+                         onerror="this.src=''; this.classList.add('cargada')">`
+                : '';
+            
+            tarjeta.innerHTML = `
+                <div class="tarjeta-imagen-contenedor">
+                    ${imagenHTML}
+                </div>
+                
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-titulo">${grupo.nombre}</div>
+                    
+                    <div class="tarjeta-descripcion">${grupo.descripcion || 'Sin descripción'}</div>
+                    
+                    <button class="boton-ver-grupo" data-id="${grupo.id}">Ver grupo</button>
+                </div>
+            `;
+            
+            gridGrupos.appendChild(tarjeta);
+            
+            // Asignar evento al botón de ver grupo
+            tarjeta.querySelector('.boton-ver-grupo').addEventListener('click', function() {
+                abrirModalVerGrupo(grupo.id);
+            });
+        }
+        
+        // Mostrar grupos en la vista Home
+        function mostrarGruposEnHome(grupos) {
+            gridGrupos.innerHTML = '';
+            
+            if (grupos.length === 0) {
+                gridGrupos.innerHTML = '<div class="sin-datos">No se encontraron grupos que coincidan con la búsqueda.</div>';
+                return;
+            }
+            
+            grupos.forEach(grupo => {
+                crearTarjetaGrupo(grupo);
+            });
+            
+            // Configurar scroll infinito si hay más grupos
+            if (cache.grupos && cache.grupos.length > GRUPOS_POR_CARGA) {
+                configurarScrollInfinito();
+                
+                // Agregar skeletons para indicar que hay más contenido
+                for (let i = 0; i < 2; i++) {
+                    const skeleton = document.createElement('div');
+                    skeleton.className = 'skeleton skeleton-tarjeta';
+                    gridGrupos.appendChild(skeleton);
+                }
+            }
+        }
+        
+        // Abrir modal para ver grupo
+        function abrirModalVerGrupo(grupoId) {
+            // Mostrar skeleton en modal
+            modalVerGrupoImagen.classList.remove('cargada');
+            modalVerGrupoNombre.textContent = 'Cargando...';
+            modalVerGrupoDescripcion.textContent = 'Cargando...';
+            modalVerGrupoEtiquetas.innerHTML = '';
+            modalVerGrupoVisualizaciones.textContent = '0';
+            modalVerGrupoUniones.textContent = '0';
+            modalVerGrupoCorazones.textContent = '0';
+            
+            modalVerGrupo.classList.add('activo');
+            
+            database.ref('grupos/' + grupoId).once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    mostrarMensajeConfirmacion('El grupo no existe');
+                    modalVerGrupo.classList.remove('activo');
+                    return;
+                }
+                
+                const grupo = snapshot.val();
+                grupo.id = grupoId;
+                grupoModalActual = grupo;
+                
+                // Cargar datos en el modal
+                if (grupo.imagen && grupo.imagen.trim() !== '') {
+                    modalVerGrupoImagen.src = grupo.imagen;
+                    modalVerGrupoImagen.style.display = 'block';
+                    modalVerGrupoImagen.onload = function() {
+                        this.classList.add('cargada');
+                    };
+                    modalVerGrupoImagen.onerror = function() {
+                        this.src = '';
+                        this.style.display = 'none';
+                        this.classList.add('cargada');
+                    };
+                } else {
+                    modalVerGrupoImagen.src = '';
+                    modalVerGrupoImagen.style.display = 'none';
+                    modalVerGrupoImagen.classList.add('cargada');
+                }
+                
+                modalVerGrupoNombre.textContent = grupo.nombre;
+                modalVerGrupoDescripcion.textContent = grupo.descripcion || 'Sin descripción';
+                
+                // Mostrar fecha formateada
+                if (grupo.fecha) {
+                    const fecha = new Date(grupo.fecha);
+                    const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
+                    modalVerGrupoFecha.textContent = fecha.toLocaleDateString('es-ES', opciones);
+                } else {
+                    modalVerGrupoFecha.textContent = 'Fecha no disponible';
+                }
+                
+                // Etiquetas
+                modalVerGrupoEtiquetas.innerHTML = '';
+                if (grupo.etiquetas) {
+                    const etiquetasArray = grupo.etiquetas.split(',').map(e => e.trim()).filter(e => e);
+                    etiquetasArray.forEach(etiqueta => {
+                        const span = document.createElement('span');
+                        span.className = 'modal-ver-grupo-etiqueta';
+                        span.textContent = etiqueta;
+                        modalVerGrupoEtiquetas.appendChild(span);
+                    });
+                }
+                
+                // Enlace
+                if (grupo.enlace && grupo.enlace.trim() !== '') {
+                    modalVerGrupoBotonUnirse.href = grupo.enlace;
+                    modalVerGrupoBotonUnirse.style.display = 'block';
+                } else {
+                    modalVerGrupoBotonUnirse.style.display = 'none';
+                }
+                
+                // Estadísticas
+                modalVerGrupoVisualizaciones.textContent = grupo.vistas || 0;
+                modalVerGrupoUniones.textContent = grupo.uniones || 0;
+                modalVerGrupoCorazones.textContent = grupo.corazones || 0;
+                
+                // Verificar interacciones del usuario
+                if (!interaccionesUsuario[grupoId]) {
+                    interaccionesUsuario[grupoId] = {
+                        vistas: new Set(),
+                        uniones: new Set(),
+                        corazones: new Set()
+                    };
+                }
+                
+                const haDadoCorazon = interaccionesUsuario[grupoId].corazones.has(userId);
+                if (haDadoCorazon) {
+                    modalVerGrupoCorazon.classList.add('activo');
+                } else {
+                    modalVerGrupoCorazon.classList.remove('activo');
+                }
+                
+                // Control de visualizaciones (solo una vez por usuario)
+                if (!interaccionesUsuario[grupoId].vistas.has(userId)) {
+                    // Incrementar visualizaciones
+                    incrementarEstadistica(grupoId, 'vistas');
+                    
+                    // Registrar que este usuario ha visto
+                    interaccionesUsuario[grupoId].vistas.add(userId);
+                    guardarInteracciones();
+                    
+                    // Actualizar contador en modal
+                    const nuevasVistas = (grupoModalActual.vistas || 0) + 1;
+                    modalVerGrupoVisualizaciones.textContent = nuevasVistas;
+                    grupoModalActual.vistas = nuevasVistas;
+                }
+            });
+        }
+        
+        // Función para incrementar estadísticas (con control)
+        function incrementarEstadistica(grupoId, tipo) {
+            const grupoRef = database.ref('grupos/' + grupoId);
+            grupoRef.transaction((grupo) => {
+                if (grupo) {
+                    grupo[tipo] = (grupo[tipo] || 0) + 1;
+                    
+                    // Actualizar el grupo actual en el modal si está abierto
+                    if (grupoModalActual && grupoModalActual.id === grupoId) {
+                        grupoModalActual[tipo] = grupo[tipo];
+                    }
+                }
+                return grupo;
+            });
+        }
+        
+        // Función para decrementar estadísticas (con control)
+        function decrementarEstadistica(grupoId, tipo) {
+            const grupoRef = database.ref('grupos/' + grupoId);
+            grupoRef.transaction((grupo) => {
+                if (grupo && grupo[tipo] > 0) {
+                    grupo[tipo] = grupo[tipo] - 1;
+                    
+                    // Actualizar el grupo actual en el modal si está abierto
+                    if (grupoModalActual && grupoModalActual.id === grupoId) {
+                        grupoModalActual[tipo] = grupo[tipo];
+                    }
+                }
+                return grupo;
+            });
+        }
+        
+        // Actualizar corazón en tarjeta (ya no es necesario)
+        function actualizarCorazonEnTarjeta(grupoId, activo) {
+            // No hay estadísticas en la tarjeta ahora
+        }
+        
+        // Actualizar estadísticas en tarjeta (ya no es necesario)
+        function actualizarEstadisticasTarjeta(grupoId) {
+            // No hay estadísticas en la tarjeta ahora
+        }
+        
+        // Cargar grupos publicados para Admin con caché
+        function cargarGruposPublicadosAdmin() {
+            // Mostrar skeleton
+            listaGruposPublicadosAdmin.innerHTML = `
+                <div class="skeleton skeleton-tarjeta"></div>
+                <div class="skeleton skeleton-tarjeta"></div>
+            `;
+            
+            database.ref('grupos').orderByChild('estado').equalTo('publicado').once('value').then((snapshot) => {
+                if (snapshot.numChildren() === 0) {
+                    listaGruposPublicadosAdmin.innerHTML = '<div class="sin-datos">No hay grupos publicados</div>';
+                    return;
+                }
+                
+                listaGruposPublicadosAdmin.innerHTML = '';
+                
+                const gruposArray = [];
+                snapshot.forEach((childSnapshot) => {
+                    const grupo = childSnapshot.val();
+                    const grupoId = childSnapshot.key;
+                    
+                    // Solo mostrar grupos que no estén eliminados por el usuario
+                    if (grupo.estado === 'eliminado_usuario') return;
+                    
+                    gruposArray.push({ grupo, grupoId });
+                });
+                
+                // Procesar en lotes
+                procesarGruposAdminPorLotes(gruposArray, 0, 5);
+            });
+        }
+        
+        // Procesar grupos admin por lotes
+        function procesarGruposAdminPorLotes(gruposArray, inicio, tamanoLote) {
+            const fin = Math.min(inicio + tamanoLote, gruposArray.length);
+            
+            for (let i = inicio; i < fin; i++) {
+                const { grupo, grupoId } = gruposArray[i];
+                
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'tarjeta-grupo-admin';
+                tarjeta.innerHTML = `
+                    <div class="tarjeta-contenido-admin">
+                        <div class="tarjeta-titulo-admin">${grupo.nombre}</div>
+                        <div class="tarjeta-usuario-admin">Publicado por: ${grupo.userId ? grupo.userId.substring(0, 10) + '...' : 'Desconocido'}</div>
+                        <div class="tarjeta-descripcion" style="font-size: 12px; color: #aaa; margin-bottom: 10px;">${grupo.descripcion ? grupo.descripcion.substring(0, 100) + '...' : 'Sin descripción'}</div>
+                        <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                            Vistas: ${grupo.vistas || 0} | Uniones: ${grupo.uniones || 0} | Me gusta: ${grupo.corazones || 0}
+                        </div>
+                        <button class="boton-eliminar-grupo" data-id="${grupoId}">Eliminar Grupo</button>
+                    </div>
+                `;
+                
+                listaGruposPublicadosAdmin.appendChild(tarjeta);
+                
+                // Agregar evento al botón de eliminar
+                tarjeta.querySelector('.boton-eliminar-grupo').addEventListener('click', function() {
+                    abrirModalConfirmacionEliminar(grupoId);
+                });
+            }
+            
+            // Si hay más grupos, procesar el siguiente lote
+            if (fin < gruposArray.length) {
+                setTimeout(() => {
+                    procesarGruposAdminPorLotes(gruposArray, fin, tamanoLote);
+                }, 50);
+            }
+        }
+        
+        // Abrir modal de confirmación de eliminación (para admin)
+        function abrirModalConfirmacionEliminar(grupoId) {
+            grupoAEliminarId = grupoId;
+            grupoAEliminarPorUsuarioId = null;
+            confirmacionTexto.textContent = '¿Estás seguro de que quieres eliminar este grupo? El grupo será eliminado para todos los usuarios excepto para quien lo publicó.';
+            modalConfirmacionEliminar.classList.add('activo');
+        }
+        
+        // Abrir modal de confirmación de eliminación (para usuario)
+        function abrirModalConfirmacionEliminarUsuario(grupoId) {
+            grupoAEliminarPorUsuarioId = grupoId;
+            grupoAEliminarId = null;
+            confirmacionTexto.textContent = '¿Estás seguro de que quieres eliminar tu grupo? Esta acción no se puede deshacer y el grupo desaparecerá de "Mis Grupos".';
+            modalConfirmacionEliminar.classList.add('activo');
+        }
+        
+        // Eliminar grupo confirmado (por admin)
+        function eliminarGrupoConfirmado() {
+            if (!grupoAEliminarId) return;
+            
+            // Marcar como eliminado por admin
+            database.ref('grupos/' + grupoAEliminarId).update({
+                estado: 'eliminado'
+            })
+            .then(() => {
+                mostrarMensajeConfirmacion('Grupo eliminado correctamente');
+                cargarGruposPublicadosAdmin();
+                cargarEstadisticas();
+                // Invalidar caché
+                cache.grupos = null;
+                cache.estadisticas = null;
+                // Eliminar también del localStorage de interacciones
+                if (interaccionesUsuario[grupoAEliminarId]) {
+                    delete interaccionesUsuario[grupoAEliminarId];
+                    guardarInteracciones();
+                }
+            })
+            .catch((error) => {
+                console.error('Error al eliminar grupo:', error);
+                mostrarMensajeConfirmacion('Error al eliminar el grupo');
+            })
+            .finally(() => {
+                modalConfirmacionEliminar.classList.remove('activo');
+                grupoAEliminarId = null;
+            });
+        }
+        
+        // Eliminar grupo confirmado (por usuario)
+        function eliminarGrupoPorUsuarioConfirmado() {
+            if (!grupoAEliminarPorUsuarioId) return;
+            
+            // Marcar como eliminado por usuario
+            database.ref('grupos/' + grupoAEliminarPorUsuarioId).update({
+                estado: 'eliminado_usuario'
+            })
+            .then(() => {
+                mostrarMensajeConfirmacion('Tu grupo ha sido eliminado');
+                cargarGruposUsuario();
+                cargarEstadisticas();
+                // Invalidar caché
+                cache.grupos = null;
+                cache.estadisticas = null;
+                cargarGruposPublicados(); // Actualizar la vista Home si estaba visible
+                // Eliminar también del localStorage de interacciones
+                if (interaccionesUsuario[grupoAEliminarPorUsuarioId]) {
+                    delete interaccionesUsuario[grupoAEliminarPorUsuarioId];
+                    guardarInteracciones();
+                }
+            })
+            .catch((error) => {
+                console.error('Error al eliminar grupo:', error);
+                mostrarMensajeConfirmacion('Error al eliminar el grupo');
+            })
+            .finally(() => {
+                modalConfirmacionEliminar.classList.remove('activo');
+                grupoAEliminarPorUsuarioId = null;
+            });
+        }
+        
+        // Sistema de tabs
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Actualizar tabs activos
+                document.querySelectorAll('.admin-tab').forEach(t => {
+                    t.classList.remove('activo');
+                });
+                this.classList.add('activo');
+                
+                // Mostrar contenido correspondiente
+                document.querySelectorAll('.contenido-tab').forEach(contenido => {
+                    contenido.classList.remove('activo');
+                });
+                document.getElementById('tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.add('activo');
+                
+                // Cargar datos de la pestaña si es necesario
+                if (tabId === 'solicitudes' && listaSolicitudes.innerHTML === '') {
+                    cargarSolicitudes();
+                }
+            });
+        });
+        
+        // Función para mostrar mensaje de confirmación
+        function mostrarMensajeConfirmacion(mensaje) {
+            mensajeTexto.textContent = mensaje;
+            mensajeConfirmacion.classList.add('activo');
+            setTimeout(() => {
+                mensajeConfirmacion.classList.remove('activo');
+            }, 3000);
+        }
+        
+        // Abrir menú lateral para publicar
+        iconoMas.addEventListener('click', function() {
+            resetFormularioPublicacion();
+            ocultarTodasLasVistas();
+            document.getElementById('menuLateral').classList.add('activo');
+            actualizarIconosActivos('publicar');
+        });
+        
+        // Cerrar menú lateral
+        document.getElementById('cerrarMenu').addEventListener('click', function() {
+            document.getElementById('menuLateral').classList.remove('activo');
+            resetFormularioPublicacion();
+            // Volver a la vista Home después de cerrar el menú
+            mostrarVistaHome();
+        });
+        
+        // Manejo de la imagen - Convertir a Base64 para guardar en Firebase
+        imagenInput.addEventListener('change', function(event) {
+            if (event.target.files && event.target.files[0]) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagenBase64 = e.target.result; // Guardar Base64
+                    console.log("Imagen seleccionada, se guardará esta imagen");
+                    
+                    imagenPreview.src = imagenBase64;
+                    imagenPreview.style.display = 'block';
+                    imagenPlaceholder.style.display = 'none';
+                };
+                
+                reader.onerror = function(e) {
+                    console.error("Error al leer la imagen:", e);
+                    imagenBase64 = '';
+                    mostrarMensajeConfirmacion('Error al cargar la imagen. Intenta nuevamente.');
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                imagenBase64 = '';
+                imagenPreview.src = '';
+                imagenPreview.style.display = 'none';
+                imagenPlaceholder.style.display = 'flex';
+            }
+        });
+        
+        // Función para quitar clases de error
+        function removeErrors() {
+            const campos = document.querySelectorAll('.campo input, .campo textarea');
+            campos.forEach(campo => {
+                campo.classList.remove('error');
+            });
+        }
+        
+        // Función para validar campos
+        function validarCampos() {
+            let valido = true;
+            const nombre = document.getElementById('nombreGrupo');
+            const descripcion = document.getElementById('descripcion');
+            const etiquetas = document.getElementById('etiquetas');
+            const enlace = document.getElementById('enlaceGrupo');
+            
+            // Quitar errores anteriores
+            removeErrors();
+            
+            // Validar nombre
+            if (!nombre.value.trim()) {
+                nombre.classList.add('error');
+                valido = false;
+            }
+            
+            // Validar descripción
+            if (!descripcion.value.trim()) {
+                descripcion.classList.add('error');
+                valido = false;
+            }
+            
+            // Validar etiquetas
+            if (!etiquetas.value.trim()) {
+                etiquetas.classList.add('error');
+                valido = false;
+            }
+            
+            // Validar enlace (opcional, pero si se pone debe ser válido)
+            if (enlace.value.trim() && !validarURL(enlace.value.trim())) {
+                enlace.classList.add('error');
+                mostrarMensajeConfirmacion('El enlace proporcionado no es válido');
+                valido = false;
+            }
+            
+            // Validar imagen (solo para publicación nueva, no para edición)
+            if (!grupoEditando && !imagenBase64) {
+                mostrarMensajeConfirmacion('Por favor, selecciona una imagen para el grupo');
+                valido = false;
+            }
+            
+            // Verificar si el usuario está bloqueado
+            const userRef = database.ref('usuarios/' + userId);
+            userRef.once('value').then((snapshot) => {
+                const usuario = snapshot.val();
+                if (usuario && usuario.bloqueado) {
+                    mostrarMensajeConfirmacion('Tu cuenta está bloqueada. No puedes publicar más grupos.');
+                    valido = false;
+                }
+            });
+            
+            return valido;
+        }
+        
+        // Función para validar URL
+        function validarURL(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        // Función para mostrar vista de publicación
+        function mostrarVistaPublicacion() {
+            ocultarTodasLasVistas();
+            vistaPublicacion.style.display = 'block';
+            cargarGruposUsuario();
+            actualizarIconosActivos('misgrupos');
+        }
+        
+        // Cargar estadísticas con caché
+        function cargarEstadisticas() {
+            // Verificar caché
+            const ahora = Date.now();
+            if (cache.estadisticas && cache.ultimaActualizacion && (ahora - cache.ultimaActualizacion) < cache.TTL) {
+                mostrarEstadisticas(cache.estadisticas);
+                return;
+            }
+            
+            // Mostrar skeleton
+            estadisticasGrid.innerHTML = `
+                <div class="skeleton skeleton-text" style="height: 90px;"></div>
+                <div class="skeleton skeleton-text" style="height: 90px;"></div>
+                <div class="skeleton skeleton-text" style="height: 90px;"></div>
+            `;
+            
+            // Usar Promise.all para cargar múltiples datos en paralelo
+            Promise.all([
+                database.ref('usuarios').once('value'),
+                database.ref('grupos').once('value')
+            ]).then(([usuariosSnapshot, gruposSnapshot]) => {
+                const totalUsuarios = usuariosSnapshot.numChildren();
+                const totalGrupos = gruposSnapshot.numChildren();
+                let gruposPublicados = 0;
+                let gruposPendientes = 0;
+                
+                gruposSnapshot.forEach((grupoSnap) => {
+                    const grupo = grupoSnap.val();
+                    if (grupo.estado === 'pendiente') gruposPendientes++;
+                    if (grupo.estado === 'publicado') gruposPublicados++;
+                });
+                
+                const estadisticas = {
+                    totalUsuarios,
+                    gruposPublicados,
+                    gruposPendientes
+                };
+                
+                // Guardar en caché
+                cache.estadisticas = estadisticas;
+                cache.ultimaActualizacion = Date.now();
+                
+                mostrarEstadisticas(estadisticas);
+            });
+        }
+        
+        // Mostrar estadísticas
+        function mostrarEstadisticas(estadisticas) {
+            estadisticasGrid.innerHTML = `
+                <div class="estadistica-item">
+                    <div class="estadistica-valor">${estadisticas.totalUsuarios}</div>
+                    <div class="estadistica-label">Total Usuarios</div>
+                </div>
+                <div class="estadistica-item">
+                    <div class="estadistica-valor">${estadisticas.gruposPublicados}</div>
+                    <div class="estadistica-label">Grupos Publicados</div>
+                </div>
+                <div class="estadistica-item">
+                    <div class="estadistica-valor">${estadisticas.gruposPendientes}</div>
+                    <div class="estadistica-label">Grupos Pendientes</div>
+                </div>
+            `;
+        }
+        
+        // Cargar grupos del usuario con estadísticas
+        function cargarGruposUsuario() {
+            // Mostrar skeleton
+            vistaPublicacion.innerHTML = `
+                <div class="skeleton skeleton-tarjeta" style="height: 200px; margin-bottom: 15px;"></div>
+                <div class="skeleton skeleton-tarjeta" style="height: 200px; margin-bottom: 15px;"></div>
+            `;
+            
+            database.ref('grupos').orderByChild('userId').equalTo(userId).once('value').then((snapshot) => {
+                if (snapshot.numChildren() === 0) {
+                    vistaPublicacion.innerHTML = '<div class="sin-datos">No has publicado ningún grupo aún.</div>';
+                    return;
+                }
+                
+                vistaPublicacion.innerHTML = '';
+                let tieneGrupos = false;
+                const gruposArray = [];
+                
+                snapshot.forEach((childSnapshot) => {
+                    const grupo = childSnapshot.val();
+                    const grupoId = childSnapshot.key;
+                    
+                    // No mostrar grupos eliminados por el usuario
+                    if (grupo.estado === 'eliminado_usuario') {
+                        return;
+                    }
+                    
+                    tieneGrupos = true;
+                    gruposArray.push({ grupo, grupoId });
+                });
+                
+                if (!tieneGrupos) {
+                    vistaPublicacion.innerHTML = '<div class="sin-datos">No has publicado ningún grupo aún.</div>';
+                    return;
+                }
+                
+                // Procesar en lotes
+                procesarGruposUsuarioPorLotes(gruposArray, 0, 3);
+            });
+        }
+        
+        // Procesar grupos usuario por lotes
+        function procesarGruposUsuarioPorLotes(gruposArray, inicio, tamanoLote) {
+            const fin = Math.min(inicio + tamanoLote, gruposArray.length);
+            
+            for (let i = inicio; i < fin; i++) {
+                const { grupo, grupoId } = gruposArray[i];
+                
+                let estadoClase = '';
+                let estadoTexto = '';
+                
+                switch(grupo.estado) {
+                    case 'pendiente':
+                        estadoClase = 'estado-pendiente';
+                        estadoTexto = 'Pendiente';
+                        break;
+                    case 'publicado':
+                        estadoClase = 'estado-publicado';
+                        estadoTexto = 'Publicado';
+                        break;
+                    case 'rechazado':
+                        estadoClase = 'estado-rechazado';
+                        estadoTexto = 'Rechazado';
+                        break;
+                    case 'eliminado':
+                        estadoClase = 'estado-eliminado';
+                        estadoTexto = 'Eliminado (Admin)';
+                        break;
+                    case 'eliminado_usuario':
+                        estadoClase = 'estado-eliminado-usuario';
+                        estadoTexto = 'Eliminado por ti';
+                        break;
+                }
+                
+                const imagenHTML = grupo.imagen && grupo.imagen.trim() !== '' 
+                    ? `<img src="${grupo.imagen}" class="grupo-imagen-usuario" alt="${grupo.nombre}" loading="lazy">`
+                    : '<div class="grupo-imagen-usuario" style="background: #333;"></div>';
+                
+                const grupoDiv = document.createElement('div');
+                grupoDiv.className = 'publicacion-grupo-usuario';
+                
+                grupoDiv.innerHTML = `
+                    <div class="grupo-header-usuario">
+                        ${imagenHTML}
+                        <div class="grupo-nombre-usuario">${grupo.nombre}</div>
+                        <div class="grupo-estado-usuario ${estadoClase}">${estadoTexto}</div>
+                    </div>
+                    <div class="grupo-descripcion-usuario">${grupo.descripcion}</div>
+                    ${grupo.enlace ? `<div class="grupo-enlace-usuario">Enlace: ${grupo.enlace}</div>` : ''}
+                    <div class="grupo-etiquetas-usuario">Etiquetas: ${grupo.etiquetas || ''}</div>
+                    
+                    <div class="estadisticas-grupo">
+                        <div class="estadistica-grupo">
+                            <div class="estadistica-valor-grupo">${grupo.vistas || 0}</div>
+                            <div class="estadistica-label-grupo">Visualizaciones</div>
+                        </div>
+                        <div class="estadistica-grupo">
+                            <div class="estadistica-valor-grupo">${grupo.uniones || 0}</div>
+                            <div class="estadistica-label-grupo">Usuarios unidos</div>
+                        </div>
+                        <div class="estadistica-grupo">
+                            <div class="estadistica-valor-grupo">${grupo.corazones || 0}</div>
+                            <div class="estadistica-label-grupo">Me gusta</div>
+                        </div>
+                    </div>
+                    
+                    <div class="acciones-grupo">
+                        <button class="boton-editar" data-id="${grupoId}">Editar y Reenviar</button>
+                        <button class="boton-eliminar-usuario" data-id="${grupoId}">Eliminar</button>
+                    </div>
+                `;
+                
+                vistaPublicacion.appendChild(grupoDiv);
+                
+                // Agregar evento al botón de editar
+                grupoDiv.querySelector('.boton-editar').addEventListener('click', function() {
+                    abrirEditorGrupo(grupoId, grupo);
+                });
+                
+                // Agregar evento al botón de eliminar
+                grupoDiv.querySelector('.boton-eliminar-usuario').addEventListener('click', function() {
+                    abrirModalConfirmacionEliminarUsuario(grupoId);
+                });
+            }
+            
+            // Si hay más grupos, procesar el siguiente lote
+            if (fin < gruposArray.length) {
+                setTimeout(() => {
+                    procesarGruposUsuarioPorLotes(gruposArray, fin, tamanoLote);
+                }, 50);
+            }
+        }
+        
+        // Abrir editor de grupo
+        function abrirEditorGrupo(grupoId, grupo) {
+            grupoEditando = { id: grupoId, ...grupo };
+            
+            // Prellenar el formulario
+            nombreGrupoInput.value = grupo.nombre || '';
+            descripcionInput.value = grupo.descripcion || '';
+            etiquetasInput.value = grupo.etiquetas || '';
+            enlaceGrupoInput.value = grupo.enlace || '';
+            
+            // Cargar la imagen si existe
+            if (grupo.imagen && grupo.imagen.trim() !== '') {
+                // Si la imagen es base64 (empieza con data:image) o es una URL
+                imagenBase64 = grupo.imagen;
+                imagenPreview.src = grupo.imagen;
+                imagenPreview.style.display = 'block';
+                imagenPlaceholder.style.display = 'none';
+            } else {
+                imagenBase64 = '';
+                imagenPreview.src = '';
+                imagenPreview.style.display = 'none';
+                imagenPlaceholder.style.display = 'flex';
+            }
+            
+            // Cambiar a modo edición
+            tituloMenu.textContent = 'Editar grupo';
+            btnPublicar.style.display = 'none';
+            btnActualizar.style.display = 'block';
+            
+            // Abrir el menú lateral
+            ocultarTodasLasVistas();
+            document.getElementById('menuLateral').classList.add('activo');
+            actualizarIconosActivos('publicar');
+        }
+        
+        // Resetear formulario de publicación
+        function resetFormularioPublicacion() {
+            grupoEditando = null;
+            tituloMenu.textContent = 'Publicar grupo';
+            btnPublicar.style.display = 'block';
+            btnActualizar.style.display = 'none';
+            
+            nombreGrupoInput.value = '';
+            descripcionInput.value = '';
+            etiquetasInput.value = '';
+            enlaceGrupoInput.value = '';
+            imagenPreview.src = '';
+            imagenPreview.style.display = 'none';
+            imagenPlaceholder.style.display = 'flex';
+            imagenInput.value = '';
+            imagenBase64 = ''; // Asegurar que se reinicia a cadena vacía
+            
+            removeErrors();
+        }
+        
+        // Actualizar grupo
+        btnActualizar.addEventListener('click', async function() {
+            if (!grupoEditando) return;
+            
+            const nombre = nombreGrupoInput.value.trim();
+            const descripcion = descripcionInput.value.trim();
+            const etiquetas = etiquetasInput.value.trim();
+            const enlace = enlaceGrupoInput.value.trim();
+            
+            if (!nombre || !descripcion || !etiquetas) {
+                mostrarMensajeConfirmacion('Por favor, completa todos los campos obligatorios');
+                return;
+            }
+            
+            if (enlace && !validarURL(enlace)) {
+                mostrarMensajeConfirmacion('El enlace proporcionado no es válido');
+                return;
+            }
+            
+            // Mostrar mensaje de carga
+            mostrarMensajeConfirmacion('Actualizando grupo...');
+            
+            let imagenAGuardar = grupoEditando.imagen; // Mantener la imagen actual por defecto
+            
+            // Si hay una nueva imagen (imagenBase64 es una cadena Base64 y es diferente a la anterior)
+            if (imagenBase64 && imagenBase64.startsWith('data:image')) {
+                imagenAGuardar = imagenBase64;
+            }
+            
+            // Actualizar el grupo
+            database.ref('grupos/' + grupoEditando.id).update({
+                nombre: nombre,
+                descripcion: descripcion,
+                etiquetas: etiquetas,
+                enlace: enlace,
+                imagen: imagenAGuardar,
+                estado: 'pendiente',
+                fechaModificacion: new Date().toISOString()
+            })
+            .then(() => {
+                mostrarMensajeConfirmacion('Grupo actualizado y enviado para revisión');
+                document.getElementById('menuLateral').classList.remove('activo');
+                resetFormularioPublicacion();
+                cargarGruposUsuario();
+                mostrarVistaPublicacion();
+                // Invalidar caché
+                cache.grupos = null;
+                cache.estadisticas = null;
+            })
+            .catch((error) => {
+                console.error('Error al actualizar grupo:', error);
+                mostrarMensajeConfirmacion('Error al actualizar el grupo');
+            });
+        });
+        
+        // Cargar solicitudes pendientes (solo cuando se activa la pestaña)
+        function cargarSolicitudes() {
+            // Mostrar skeleton
+            listaSolicitudes.innerHTML = `
+                <div class="skeleton skeleton-tarjeta" style="height: 180px; margin-bottom: 15px;"></div>
+                <div class="skeleton skeleton-tarjeta" style="height: 180px; margin-bottom: 15px;"></div>
+            `;
+            
+            database.ref('grupos').orderByChild('estado').equalTo('pendiente').once('value').then((snapshot) => {
+                if (snapshot.numChildren() === 0) {
+                    listaSolicitudes.innerHTML = '<div class="sin-datos">No hay solicitudes pendientes</div>';
+                    return;
+                }
+                
+                listaSolicitudes.innerHTML = '';
+                
+                const solicitudesArray = [];
+                snapshot.forEach((childSnapshot) => {
+                    const grupo = childSnapshot.val();
+                    const grupoId = childSnapshot.key;
+                    solicitudesArray.push({ grupo, grupoId });
+                });
+                
+                // Procesar en lotes
+                procesarSolicitudesPorLotes(solicitudesArray, 0, 3);
+            });
+        }
+        
+        // Procesar solicitudes por lotes
+        function procesarSolicitudesPorLotes(solicitudesArray, inicio, tamanoLote) {
+            const fin = Math.min(inicio + tamanoLote, solicitudesArray.length);
+            
+            for (let i = inicio; i < fin; i++) {
+                const { grupo, grupoId } = solicitudesArray[i];
+                
+                const imagenHTML = grupo.imagen && grupo.imagen.trim() !== '' 
+                    ? `<img src="${grupo.imagen}" class="grupo-imagen-usuario" alt="${grupo.nombre}" loading="lazy">`
+                    : '<div class="grupo-imagen-usuario" style="background: #333;"></div>';
+                
+                const grupoDiv = document.createElement('div');
+                grupoDiv.className = 'publicacion-grupo-usuario';
+                
+                grupoDiv.innerHTML = `
+                    <div class="grupo-header-usuario">
+                        ${imagenHTML}
+                        <div class="grupo-nombre-usuario">${grupo.nombre}</div>
+                        <div class="grupo-estado-usuario estado-pendiente">Pendiente</div>
+                    </div>
+                    <div class="grupo-descripcion-usuario">${grupo.descripcion}</div>
+                    <div class="grupo-etiquetas-usuario">Etiquetas: ${grupo.etiquetas || ''}</div>
+                    <div>Usuario: ${grupo.userId ? grupo.userId.substring(0, 10) + '...' : 'Desconocido'}</div>
+                    <div class="acciones-grupo">
+                        <button class="boton-editar" style="background: linear-gradient(145deg, #4caf50, #43a047)" data-id="${grupoId}">Aceptar</button>
+                        <button class="boton-editar" style="background: linear-gradient(145deg, #f44336, #e53935)" data-id="${grupoId}">Rechazar</button>
+                    </div>
+                `;
+                
+                listaSolicitudes.appendChild(grupoDiv);
+                
+                // Agregar eventos a los botones
+                const botones = grupoDiv.querySelectorAll('.boton-editar');
+                botones[0].addEventListener('click', function() {
+                    actualizarEstadoGrupo(grupoId, 'publicado');
+                });
+                
+                botones[1].addEventListener('click', function() {
+                    actualizarEstadoGrupo(grupoId, 'rechazado');
+                });
+            }
+            
+            // Si hay más solicitudes, procesar el siguiente lote
+            if (fin < solicitudesArray.length) {
+                setTimeout(() => {
+                    procesarSolicitudesPorLotes(solicitudesArray, fin, tamanoLote);
+                }, 50);
+            }
+        }
+        
+        // Actualizar estado de grupo
+        function actualizarEstadoGrupo(grupoId, nuevoEstado) {
+            database.ref('grupos/' + grupoId).update({
+                estado: nuevoEstado
+            })
+            .then(() => {
+                mostrarMensajeConfirmacion('Estado actualizado correctamente');
+                cargarSolicitudes();
+                cargarEstadisticas();
+                cargarGruposPublicadosAdmin();
+                // Invalidar caché
+                cache.grupos = null;
+                cache.estadisticas = null;
+                // Si se publica un grupo, recargar la vista Home
+                if (nuevoEstado === 'publicado' && vistaHome.style.display === 'block') {
+                    cargarGruposPublicados();
+                }
+            })
+            .catch((error) => {
+                console.error('Error al actualizar estado:', error);
+                mostrarMensajeConfirmacion('Error al actualizar el estado');
+            });
+        }
+        
+        // Guardar grupo en Firebase con imagen como base64
+        function guardarGrupoFirebase(grupo) {
+            // Verificar si el usuario está bloqueado
+            return database.ref('usuarios/' + userId).once('value').then(async (snapshot) => {
+                const usuario = snapshot.val();
+                if (usuario && usuario.bloqueado) {
+                    mostrarMensajeConfirmacion('Tu cuenta está bloqueada. No puedes publicar más grupos.');
+                    return;
+                }
+                
+                // Mostrar mensaje de carga con efecto de procesamiento
+                mostrarMensajeConfirmacion('Procesando imagen y guardando grupo...');
+                
+                // Determinar qué imagen usar
+                let imagenAGuardar = grupo.imagen || imagenBase64 || '';
+                
+                // Crear referencia al nuevo grupo
+                const nuevoGrupoRef = database.ref('grupos').push();
+                grupo.id = nuevoGrupoRef.key;
+                grupo.userId = userId;
+                
+                // INICIALIZAR ESTADÍSTICAS
+                grupo.vistas = 0;
+                grupo.uniones = 0;
+                grupo.corazones = 0;
+                
+                // Asegurar que la imagen está asignada en el objeto final
+                grupo.imagen = imagenAGuardar;
+                
+                return nuevoGrupoRef.set(grupo)
+                .then(() => {
+                    // Incrementar contador de grupos del usuario
+                    database.ref('usuarios/' + userId).update({
+                        gruposPublicados: (usuario.gruposPublicados || 0) + 1
+                    });
+                    
+                    // Invalidar caché
+                    cache.grupos = null;
+                    cache.estadisticas = null;
+                    
+                    mostrarMensajeConfirmacion('Tu grupo ha sido enviado a revisión. Puedes ver el estado de tu grupo en publicación.');
+                })
+                .catch((error) => {
+                    console.error('Error al guardar en Firebase:', error);
+                    mostrarMensajeConfirmacion('Error al publicar el grupo. Inténtalo de nuevo.');
+                });
+            });
+        }
+        
+        // Botón publicar
+        btnPublicar.addEventListener('click', async function() {
+            if (validarCampos()) {
+                const nombre = nombreGrupoInput.value;
+                const descripcion = descripcionInput.value;
+                const etiquetas = etiquetasInput.value;
+                const enlace = enlaceGrupoInput.value;
+                
+                // Crear nuevo grupo
+                const nuevoGrupo = {
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    etiquetas: etiquetas,
+                    enlace: enlace.trim(),
+                    estado: 'pendiente',
+                    fecha: new Date().toISOString(),
+                    userId: userId,
+                    imagen: imagenBase64 // <--- CORRECCIÓN IMPORTANTE: Capturamos la imagen AQUÍ mismo
+                };
+                
+                // Guardar en Firebase (ahora sí espera a que termine gracias al return)
+                await guardarGrupoFirebase(nuevoGrupo);
+                
+                // Limpiar formulario y cerrar menú
+                document.getElementById('menuLateral').classList.remove('activo');
+                resetFormularioPublicacion();
+                
+                // Volver a la vista Home
+                mostrarVistaHome();
+            }
+        });
+        
+        // Quitar error al empezar a escribir
+        nombreGrupoInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('error');
+            }
+        });
+        
+        descripcionInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('error');
+            }
+        });
+        
+        etiquetasInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('error');
+            }
+        });
+        
+        enlaceGrupoInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('error');
+            }
+        });
+        
+        // Navegación entre vistas
+        iconoHome.addEventListener('click', function() {
+            mostrarVistaHome();
+        });
+        
+        iconoPublicacion.addEventListener('click', function() {
+            mostrarVistaPublicacion();
+        });
+        
+        // Cerrar mensaje de confirmación al hacer clic
+        mensajeConfirmacion.addEventListener('click', function() {
+            this.classList.remove('activo');
+        });
+        
+        // Cerrar modal de confirmación de eliminación al hacer clic fuera del contenido
+        modalConfirmacionEliminar.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('activo');
+                grupoAEliminarId = null;
+                grupoAEliminarPorUsuarioId = null;
+            }
+        });
+        
+        // Cerrar modal de ver grupo al hacer clic fuera del contenido
+        modalVerGrupo.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('activo');
+                grupoModalActual = null;
+            }
+        });
+        
+        // Precargar imágenes de iconos
+        window.addEventListener('load', function() {
+            const iconos = [
+                'https://i.ibb.co/n84F5wwC/lupa.png',
+                'https://i.ibb.co/Z1wD350f/home.png',
+                'https://i.ibb.co/qF03jpFH/mas.png',
+                'https://i.ibb.co/7JZmyK0w/publicacion.png',
+                'https://i.ibb.co/HL2wKW3G/flecha.png',
+                'https://i.ibb.co/pv2KTQ0Q/corazon.png'
+            ];
+            
+            iconos.forEach(icono => {
+                const img = new Image();
+                img.src = icono;
+            });
+        });
+    </script>
+</body>
+</html>
