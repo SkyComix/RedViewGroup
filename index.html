@@ -95,9 +95,9 @@
         .input-busqueda {
             flex: 1;
             padding: 10px 15px;
-            background: #1a1a1a; /* Gris oscuro */
-            border: 1px solid #333; /* Borde más oscuro */
-            border-radius: 8px; /* Esquinas un poco redondeadas (no 20px) */
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
             color: white;
             font-family: 'MiFuente', sans-serif;
             font-size: 16px;
@@ -106,17 +106,17 @@
         
         .input-busqueda:focus {
             border-color: #555;
-            background: #222; /* Un poco más claro al enfocar */
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05); /* Sombra más sutil */
+            background: #222;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
         }
         
         /* MODIFICADO: Botón de cerrar con fondo gris oscuro y esquinas redondeadas */
         .boton-cerrar-busqueda {
             width: 36px;
             height: 36px;
-            border-radius: 8px; /* Esquinas un poco redondeadas (no circular) */
-            background: #1a1a1a; /* Gris oscuro igual que el campo */
-            border: 1px solid #333; /* Borde más oscuro */
+            border-radius: 8px;
+            background: #1a1a1a;
+            border: 1px solid #333;
             color: white;
             font-size: 18px;
             font-weight: bold;
@@ -129,8 +129,8 @@
         }
         
         .boton-cerrar-busqueda:hover {
-            background: #222; /* Un poco más claro al hover */
-            transform: scale(1.05); /* Efecto más sutil */
+            background: #222;
+            transform: scale(1.05);
         }
         
         /* BARRA INFERIOR */
@@ -453,7 +453,7 @@
             width: 120px;
             height: 120px;
             margin: 0 auto 25px;
-            border-radius: 50%; /* Cambiado a circular */
+            border-radius: 50%;
             overflow: hidden;
             background: #333;
             border: 3px solid #444;
@@ -654,7 +654,7 @@
             height: 150px;
             margin: 0 auto 30px;
             background: #333;
-            border-radius: 50%; /* Cambiado a circular */
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -688,7 +688,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 50%; /* Cambiado a circular */
+            border-radius: 50%;
             display: none;
         }
         
@@ -755,6 +755,7 @@
             padding: 15px;
             display: block;
             background-color: #000000;
+            min-height: calc(100vh - 125px);
         }
         
         /* Vista de publicación */
@@ -763,6 +764,7 @@
             display: none;
             padding-bottom: 80px;
             background-color: #000000;
+            min-height: calc(100vh - 125px);
         }
         
         /* Vista de administrador */
@@ -771,13 +773,14 @@
             display: none;
             padding-bottom: 80px;
             background-color: #000000;
+            min-height: calc(100vh - 125px);
         }
         
         /* MODIFICADO: Tarjetas en DOS COLUMNAS - DISEÑO SIMPLIFICADO */
         .grid-grupos {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 columnas */
-            gap: 12px; /* Espacio entre tarjetas */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
         
         .tarjeta-grupo {
@@ -787,11 +790,22 @@
             border: 1px solid #444;
             transition: transform 0.3s, box-shadow 0.3s;
             display: flex;
-            flex-direction: column; /* Cambiado a columna */
+            flex-direction: column;
             padding: 12px;
             position: relative;
-            min-height: 250px; /* Reducido un poco */
+            min-height: 250px;
             will-change: transform;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: aparecerTarjeta 0.5s ease forwards;
+            cursor: pointer; /* AÑADIDO: Cursor pointer para indicar que es clickeable */
+        }
+        
+        @keyframes aparecerTarjeta {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .tarjeta-grupo:hover {
@@ -802,7 +816,7 @@
         /* MODIFICADO: Imagen cuadrada 1:1 en la parte superior */
         .tarjeta-imagen-contenedor {
             width: 100%;
-            height: 120px; /* Altura reducida */
+            height: 120px;
             border-radius: 12px;
             overflow: hidden;
             background: #333;
@@ -834,7 +848,7 @@
             color: white;
             font-size: 14px;
             font-weight: bold;
-            margin: 0 0 2px 0; /* MUY REDUCIDO: de 5px a 2px */
+            margin: 0 0 2px 0;
             line-height: 1.3;
             text-align: center;
             display: -webkit-box;
@@ -847,16 +861,16 @@
         /* MODIFICADO: Descripción MUY cerca del título */
         .tarjeta-descripcion {
             color: #aaa;
-            font-size: 11px; /* Tamaño pequeño como en admin */
+            font-size: 11px;
             line-height: 1.3;
-            margin-bottom: 10px; /* Reducido: de 12px a 10px */
+            margin-bottom: 10px;
             display: -webkit-box;
-            -webkit-line-clamp: 3; /* Mostrar hasta 3 líneas */
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            min-height: 42px; /* 3 líneas * 14px (tamaño de fuente * line-height) */
-            text-align: center; /* Añadido: alineación centrada */
+            min-height: 42px;
+            text-align: center;
         }
         
         /* MODIFICADO: Botón Ver Grupo - centrado y bien ajustado */
@@ -875,7 +889,7 @@
             text-decoration: none;
             display: block;
             transition: all 0.3s;
-            margin-top: auto; /* Empuja el botón hacia abajo */
+            margin-top: auto;
         }
         
         .boton-ver-grupo:hover {
@@ -1353,7 +1367,7 @@
         </div>
         
         <div class="modal-ver-grupo-footer">
-            <a href="#" target="_blank" class="modal-ver-grupo-boton-unirse" id="modalVerGrupoBotonUnirse">Unirse al grupo</a>
+            <a href="#" target="_blank" class="modal-ver-grupo-boton-unirse" id="modalVerGrupoBotonUnirse">Unirse</a> <!-- CAMBIADO: "Unirse al grupo" a "Unirse" -->
             <div class="modal-ver-grupo-corazon" id="modalVerGrupoCorazon">
                 <img src="https://i.ibb.co/pv2KTQ0Q/corazon.png" alt="Corazón">
             </div>
@@ -1603,10 +1617,10 @@
         let vistaActiva = 'home';
         let esAdmin = localStorage.getItem('esAdmin') === 'true';
         let todosLosGrupos = [];
-        let grupoAEliminarPorUsuarioId = null; // Variable para eliminar grupo desde vista usuario
-        let cargandoMasGrupos = false;
-        let ultimoGrupoCargado = 0;
-        const GRUPOS_POR_CARGA = 10;
+        let grupoAEliminarPorUsuarioId = null;
+        let cargandoGrupos = false;
+        let indiceCargaGrupo = 0;
+        const RETRASO_CARGA_GRUPO = 100; // ms entre cada grupo
         
         // OBJETO PARA CONTROLAR INTERACCIONES POR USUARIO
         const interaccionesUsuario = {};
@@ -1971,16 +1985,18 @@
             return newArray;
         }
         
-        // Cargar grupos publicados para Home con caché y carga diferida
+        // Cargar grupos publicados para Home con caché - Carga progresiva
         function cargarGruposPublicados() {
             // Verificar caché
             const ahora = Date.now();
             if (cache.grupos && cache.ultimaActualizacion && (ahora - cache.ultimaActualizacion) < cache.TTL) {
-                mostrarGruposEnHome(cache.grupos.slice(0, GRUPOS_POR_CARGA));
+                mostrarGruposProgresivamente(cache.grupos);
                 todosLosGrupos = cache.grupos;
-                ultimoGrupoCargado = GRUPOS_POR_CARGA;
                 return;
             }
+            
+            // Mostrar skeleton inicial
+            mostrarSkeletonLoader();
             
             database.ref('grupos').orderByChild('estado').equalTo('publicado').once('value').then((snapshot) => {
                 if (snapshot.numChildren() === 0) {
@@ -2009,85 +2025,53 @@
                 // Guardar todos los grupos para búsqueda
                 todosLosGrupos = [...gruposMezclados];
                 
-                // Mostrar solo los primeros grupos
-                mostrarGruposEnHome(gruposMezclados.slice(0, GRUPOS_POR_CARGA));
-                ultimoGrupoCargado = GRUPOS_POR_CARGA;
-                
-                // Configurar scroll infinito
-                configurarScrollInfinito();
+                // Mostrar grupos progresivamente
+                mostrarGruposProgresivamente(gruposMezclados);
             });
         }
         
-        // Configurar scroll infinito
-        function configurarScrollInfinito() {
-            const gridContainer = document.querySelector('.vista-home');
+        // Función para mostrar grupos uno a uno progresivamente
+        function mostrarGruposProgresivamente(grupos) {
+            if (cargandoGrupos) return;
+            cargandoGrupos = true;
+            indiceCargaGrupo = 0;
             
-            // Remover listener anterior si existe
-            gridContainer.removeEventListener('scroll', manejarScroll);
+            // Limpiar skeletons
+            gridGrupos.innerHTML = '';
             
-            // Agregar nuevo listener
-            gridContainer.addEventListener('scroll', manejarScroll);
-            
-            function manejarScroll() {
-                if (cargandoMasGrupos) return;
-                
-                const scrollTop = gridContainer.scrollTop;
-                const scrollHeight = gridContainer.scrollHeight;
-                const clientHeight = gridContainer.clientHeight;
-                
-                // Cargar más grupos cuando estemos cerca del final
-                if (scrollTop + clientHeight >= scrollHeight - 100) {
-                    cargarMasGrupos();
-                }
-            }
-        }
-        
-        // Cargar más grupos
-        function cargarMasGrupos() {
-            if (cargandoMasGrupos || !cache.grupos || ultimoGrupoCargado >= cache.grupos.length) return;
-            
-            cargandoMasGrupos = true;
-            
-            // Mostrar skeleton loader
-            for (let i = 0; i < 2; i++) {
-                const skeleton = document.createElement('div');
-                skeleton.className = 'skeleton skeleton-tarjeta';
-                gridGrupos.appendChild(skeleton);
+            if (grupos.length === 0) {
+                gridGrupos.innerHTML = '<div class="sin-datos">No hay grupos publicados aún. Sé el primero en publicar uno.</div>';
+                cargandoGrupos = false;
+                return;
             }
             
-            // Simular carga (en producción, esto sería instantáneo)
-            setTimeout(() => {
-                const inicio = ultimoGrupoCargado;
-                const fin = Math.min(ultimoGrupoCargado + GRUPOS_POR_CARGA, cache.grupos.length);
-                const gruposACargar = cache.grupos.slice(inicio, fin);
-                
-                // Remover skeletons
-                const skeletons = gridGrupos.querySelectorAll('.skeleton');
-                skeletons.forEach(skeleton => skeleton.remove());
-                
-                // Agregar nuevos grupos
-                gruposACargar.forEach(grupo => {
-                    crearTarjetaGrupo(grupo);
-                });
-                
-                ultimoGrupoCargado = fin;
-                cargandoMasGrupos = false;
-                
-                // Si aún hay más grupos, agregar más skeletons
-                if (ultimoGrupoCargado < cache.grupos.length) {
-                    for (let i = 0; i < 2; i++) {
-                        const skeleton = document.createElement('div');
-                        skeleton.className = 'skeleton skeleton-tarjeta';
-                        gridGrupos.appendChild(skeleton);
-                    }
+            // Función recursiva para cargar grupos uno por uno
+            function cargarSiguienteGrupo() {
+                if (indiceCargaGrupo >= grupos.length) {
+                    cargandoGrupos = false;
+                    return;
                 }
-            }, 300);
+                
+                const grupo = grupos[indiceCargaGrupo];
+                crearTarjetaGrupo(grupo, indiceCargaGrupo);
+                
+                indiceCargaGrupo++;
+                
+                // Cargar siguiente grupo después de un retraso
+                setTimeout(cargarSiguienteGrupo, RETRASO_CARGA_GRUPO);
+            }
+            
+            // Iniciar la carga progresiva
+            setTimeout(cargarSiguienteGrupo, RETRASO_CARGA_GRUPO);
         }
         
-        // Crear tarjeta de grupo individual
-        function crearTarjetaGrupo(grupo) {
+        // Crear tarjeta de grupo individual con animación escalonada
+        function crearTarjetaGrupo(grupo, indice) {
             const tarjeta = document.createElement('div');
             tarjeta.className = 'tarjeta-grupo';
+            
+            // Añadir retraso escalonado para la animación
+            tarjeta.style.animationDelay = (indice * 0.1) + 's';
             
             // Solo mostrar imagen si existe
             const imagenHTML = grupo.imagen && grupo.imagen.trim() !== '' 
@@ -2098,6 +2082,7 @@
                          onerror="this.src=''; this.classList.add('cargada')">`
                 : '';
             
+            // CAMBIADO: Texto del botón de "Ver grupo" a "Ver"
             tarjeta.innerHTML = `
                 <div class="tarjeta-imagen-contenedor">
                     ${imagenHTML}
@@ -2108,20 +2093,31 @@
                     
                     <div class="tarjeta-descripcion">${grupo.descripcion || 'Sin descripción'}</div>
                     
-                    <button class="boton-ver-grupo" data-id="${grupo.id}">Ver grupo</button>
+                    <button class="boton-ver-grupo" data-id="${grupo.id}">Ver</button>
                 </div>
             `;
             
             gridGrupos.appendChild(tarjeta);
             
+            // MODIFICADO: Hacer que toda la tarjeta sea clickeable para abrir el modal
+            tarjeta.addEventListener('click', function(e) {
+                // Evitar que se dispare cuando se hace clic en el botón "Ver"
+                if (!e.target.closest('.boton-ver-grupo')) {
+                    abrirModalVerGrupo(grupo.id);
+                }
+            });
+            
             // Asignar evento al botón de ver grupo
-            tarjeta.querySelector('.boton-ver-grupo').addEventListener('click', function() {
+            tarjeta.querySelector('.boton-ver-grupo').addEventListener('click', function(e) {
+                e.stopPropagation(); // Evitar que el clic en el botón también active el clic en la tarjeta
                 abrirModalVerGrupo(grupo.id);
             });
         }
         
-        // Mostrar grupos en la vista Home
+        // Mostrar grupos en la vista Home (para búsqueda - todos a la vez)
         function mostrarGruposEnHome(grupos) {
+            if (cargandoGrupos) return;
+            
             gridGrupos.innerHTML = '';
             
             if (grupos.length === 0) {
@@ -2129,21 +2125,9 @@
                 return;
             }
             
-            grupos.forEach(grupo => {
-                crearTarjetaGrupo(grupo);
+            grupos.forEach((grupo, indice) => {
+                crearTarjetaGrupo(grupo, indice);
             });
-            
-            // Configurar scroll infinito si hay más grupos
-            if (cache.grupos && cache.grupos.length > GRUPOS_POR_CARGA) {
-                configurarScrollInfinito();
-                
-                // Agregar skeletons para indicar que hay más contenido
-                for (let i = 0; i < 2; i++) {
-                    const skeleton = document.createElement('div');
-                    skeleton.className = 'skeleton skeleton-tarjeta';
-                    gridGrupos.appendChild(skeleton);
-                }
-            }
         }
         
         // Abrir modal para ver grupo
@@ -3083,7 +3067,7 @@
                     estado: 'pendiente',
                     fecha: new Date().toISOString(),
                     userId: userId,
-                    imagen: imagenBase64 // <--- CORRECCIÓN IMPORTANTE: Capturamos la imagen AQUÍ mismo
+                    imagen: imagenBase64
                 };
                 
                 // Guardar en Firebase (ahora sí espera a que termine gracias al return)
