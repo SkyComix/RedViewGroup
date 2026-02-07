@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redview Groups</title>
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
@@ -34,8 +33,10 @@
         .request-description, .admin-section-title, .admin-actions,
         .admin-stats-number, .admin-stats-label, .admin-tab-button,
         .review-link-btn, .search-input, .close-search,
-        .notification-title, .notification-message, .notification-date,
-        .notification-send-btn, .notification-input {
+        .sticker-item, .sticker-modal-title, .sticker-modal-close,
+        .sticker-upload-text, .sticker-delete-btn,
+        .form-input-container, .sticker-inside-button,
+        .content-editable {
             font-family: 'FuentePersonalizada', Arial, sans-serif !important;
         }
         
@@ -120,21 +121,19 @@
             padding: 12px 16px;
             background-color: #2a2a2a;
             border: 1px solid #444;
-            border-radius: 50px; /* ESQUINAS MUY REDONDEADAS */
+            border-radius: 50px;
             color: #fff;
             font-size: 14px;
-            outline: none; /* QUITAR CONTORNO AZUL */
+            outline: none;
             transition: border-color 0.2s;
         }
         
-        /* QUITAR CONTORNO AZUL COMPLETAMENTE AL ENFOCAR */
         .search-input:focus {
-            border-color: #444; /* MANTENER EL MISMO COLOR DE BORDE */
-            box-shadow: none; /* ELIMINAR CUALQUIER SOMBRA */
-            outline: none; /* ELIMINAR OUTLINE */
+            border-color: #444;
+            box-shadow: none;
+            outline: none;
         }
         
-        /* QUITAR ESTILOS DE AUTORRELLENO DE CHROME */
         .search-input:-webkit-autofill,
         .search-input:-webkit-autofill:hover,
         .search-input:-webkit-autofill:focus {
@@ -149,7 +148,7 @@
             background-color: #2a2a2a;
             color: white;
             border: none;
-            border-radius: 50%; /* FONDO PERFECTAMENTE REDONDEADO */
+            border-radius: 50%;
             width: 40px;
             height: 40px;
             display: flex;
@@ -159,14 +158,13 @@
             font-size: 20px;
             transition: background-color 0.2s;
             flex-shrink: 0;
-            outline: none; /* QUITAR CONTORNO AZUL */
+            outline: none;
         }
         
         .close-search:hover {
             background-color: #3a3a3a;
         }
         
-        /* QUITAR CONTORNO AZUL AL ENFOCAR EL BOTÓN */
         .close-search:focus {
             outline: none;
             box-shadow: none;
@@ -277,9 +275,274 @@
             color: #fff;
         }
         
-        /* Contenido principal - MÁS ESPACIO ARRIBA */
+        /* MODAL DE STICKERS */
+        .stickers-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .stickers-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .stickers-modal {
+            background-color: #1e1e1e;
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .stickers-modal-overlay.active .stickers-modal {
+            transform: translateY(0);
+        }
+        
+        .stickers-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .stickers-modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .stickers-modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+        
+        .stickers-modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* STICKERS GRID - 4 COLUMNAS SIEMPRE (FORZADO) */
+        .stickers-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) !important; /* FORZADO 4 COLUMNAS */
+            gap: 10px; /* Reducido un poco para que quepan mejor */
+            margin-bottom: 20px;
+        }
+        
+        /* Eliminar media queries que reducían columnas */
+        
+        .sticker-item {
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s, transform 0.2s;
+            background-color: #2a2a2a; /* Fondo para que se vea el área */
+            aspect-ratio: 1/1; /* Mantener cuadrado */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sticker-item:hover {
+            border-color: #2575fc;
+            transform: scale(1.05);
+        }
+        
+        .sticker-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 5px;
+        }
+        
+        /* CONTENEDOR DE SUBIDA DE STICKERS */
+        .sticker-upload-container {
+            background-color: #2a2a2a;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .sticker-upload-area {
+            border: 2px dashed #444;
+            border-radius: 10px;
+            padding: 30px 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        
+        .sticker-upload-area:hover {
+            border-color: #2575fc;
+            background-color: #2d2d2d;
+        }
+        
+        .sticker-upload-text {
+            font-size: 14px;
+            color: #bbb;
+            margin-top: 10px;
+        }
+        
+        .sticker-delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 5px;
+            width: 100%;
+        }
+        
+        .sticker-delete-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        /* CONTENEDOR PARA CAMPOS EDITABLES CON STICKERS */
+        .form-input-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .content-editable {
+            width: 100%;
+            min-height: 44px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 12px 45px 12px 14px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+        
+        .content-editable:focus {
+            outline: none;
+            border-color: #2575fc;
+        }
+        
+        /* Placeholder para contenteditable */
+        .content-editable[data-placeholder]:empty:before {
+            content: attr(data-placeholder);
+            color: #777;
+            position: absolute;
+            pointer-events: none;
+        }
+        
+        /* Estilo para imágenes dentro de contenteditable */
+        .content-editable img {
+            display: inline-block;
+            vertical-align: middle;
+            max-width: 24px;
+            max-height: 24px;
+            margin: 0 2px;
+            object-fit: contain;
+        }
+        
+        /* Para GIFs dentro de contenteditable */
+        .content-editable img[data-sticker] {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        
+        .sticker-inside-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            z-index: 2;
+        }
+        
+        .sticker-inside-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sticker-inside-button img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            filter: brightness(1); /* Ajustado para el nuevo icono colorido */
+        }
+        
+        /* Campos regulares (para etiquetas y enlace) */
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2575fc;
+        }
+        
+        .form-input::placeholder {
+            color: #777;
+        }
+        
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* Contenido principal */
         .main-content {
-            padding: 75px 16px 120px; /* AUMENTADO DE 60px A 75px */
+            padding: 75px 16px 120px;
             max-width: 800px;
             margin: 0 auto;
             transition: opacity 0.3s ease;
@@ -287,7 +550,7 @@
         
         /* Contenido para Mis Grupos (oculto por defecto) */
         .my-groups-content {
-            padding: 75px 16px 120px; /* AUMENTADO DE 60px A 75px */
+            padding: 75px 16px 120px;
             max-width: 800px;
             margin: 0 auto;
             display: none;
@@ -295,7 +558,7 @@
         
         /* Contenido para Admin (oculto por defecto) */
         .admin-content {
-            padding: 75px 16px 120px; /* AUMENTADO DE 60px A 75px */
+            padding: 75px 16px 120px;
             max-width: 800px;
             margin: 0 auto;
             display: none;
@@ -384,27 +647,28 @@
             display: flex;
             gap: 10px;
             margin-bottom: 25px;
-            background-color: #2a2a2a;
-            border-radius: 12px;
-            padding: 6px;
+            flex-wrap: wrap;
         }
         
         .admin-tab-button {
-            flex: 1;
-            padding: 12px;
-            background: none;
-            border: none;
+            padding: 12px 20px;
+            background-color: #2a2a2a;
+            border: 2px solid #444;
             border-radius: 8px;
             color: #bbb;
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
         }
         
         .admin-tab-button.active {
             background-color: #2575fc;
             color: white;
+            border-color: #2575fc;
         }
         
         .admin-tab-button:hover:not(.active) {
@@ -419,112 +683,6 @@
         
         .admin-tab-content.active {
             display: block;
-        }
-        
-        /* NOTIFICACIONES */
-        .notification-container {
-            background-color: #1e1e1e;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .notification-form .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .notification-input {
-            width: 100%;
-            padding: 14px;
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-            resize: vertical;
-        }
-        
-        .notification-input:focus {
-            outline: none;
-            border-color: #2575fc;
-        }
-        
-        .notification-send-btn {
-            width: 100%;
-            padding: 14px;
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .notification-send-btn:hover {
-            background-color: #27ae60;
-        }
-        
-        .notification-send-btn:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-        }
-        
-        .notification-item {
-            background-color: #2a2a2a;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .notification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-        
-        .notification-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            margin: 0;
-            flex-grow: 1;
-        }
-        
-        .notification-date {
-            font-size: 12px;
-            color: #bbb;
-            white-space: nowrap;
-            margin-left: 10px;
-        }
-        
-        .notification-message {
-            font-size: 14px;
-            color: #ddd;
-            line-height: 1.4;
-            margin: 0;
-        }
-        
-        .delete-notification-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-        
-        .delete-notification-btn:hover {
-            background-color: #c0392b;
         }
         
         /* IMAGEN EN SOLICITUDES PENDIENTES */
@@ -591,7 +749,7 @@
             font-size: 11px;
         }
         
-        /* ACTUALIZADO: TODOS LOS BOTONES EN LA MISMA LÍNEA */
+        /* ACCIONES EN SOLICITUDES */
         .request-actions {
             display: flex;
             gap: 10px;
@@ -600,7 +758,6 @@
             flex-wrap: wrap;
         }
         
-        /* Asegurar que todos los botones tengan el mismo estilo base */
         .request-actions .review-link-btn,
         .request-actions .reject-btn,
         .request-actions .accept-btn {
@@ -721,6 +878,9 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .card-description {
@@ -756,7 +916,6 @@
             background-color: #27ae60;
         }
         
-        /* BOTÓN DE ELIMINAR EN ADMIN PUBLISHED */
         .admin-delete-btn {
             background-color: #e74c3c;
             color: white;
@@ -766,7 +925,7 @@
             font-size: 12px;
             cursor: pointer;
             transition: background-color 0.2s;
-            margin-top: 10px;
+            margin-top: 5px;
             width: 100%;
         }
         
@@ -774,7 +933,6 @@
             background-color: #c0392b;
         }
         
-        /* ETIQUETAS EN MIS GRUPOS - ALINEADAS A LA IZQUIERDA */
         .my-group-tags {
             display: flex;
             flex-wrap: wrap;
@@ -791,7 +949,6 @@
             font-size: 10px;
         }
         
-        /* PIE DE TARJETA EN MIS GRUPOS CON DOS COLUMNAS */
         .my-group-footer {
             display: flex;
             justify-content: space-between;
@@ -801,7 +958,6 @@
             border-top: 1px solid #333;
         }
         
-        /* ESTADÍSTICAS EN LADO IZQUIERDO */
         .my-group-stats {
             display: flex;
             gap: 16px;
@@ -825,7 +981,6 @@
             margin-top: 2px;
         }
         
-        /* ESTADO DEL GRUPO EN LADO DERECHO - BORDE REDONDEADO AL MÁXIMO */
         .group-status {
             display: inline-block;
             padding: 6px 16px;
@@ -851,7 +1006,7 @@
             color: white;
         }
         
-        /* MENÚ LATERAL DE PUBLICACIÓN DESDE LA DERECHA */
+        /* MENÚS LATERALES */
         .side-menu {
             position: fixed;
             top: 0;
@@ -868,7 +1023,6 @@
             right: 0;
         }
         
-        /* MENÚ LATERAL DE DETALLES DEL GRUPO */
         .group-details-menu {
             position: fixed;
             top: 0;
@@ -885,7 +1039,6 @@
             right: 0;
         }
         
-        /* Overlay para cerrar los menús */
         .menu-overlay {
             position: fixed;
             top: 0;
@@ -905,7 +1058,6 @@
             visibility: visible;
         }
         
-        /* BARRA SUPERIOR DENTRO DEL GRUPO - DEBE MOVERSE CON EL DESPLAZAMIENTO */
         .details-header {
             background-color: #121212;
             padding: 16px;
@@ -943,7 +1095,6 @@
             text-align: center;
         }
         
-        /* Contenido del menú de detalles - MÁS ESPACIO PARA DESPLAZAMIENTO */
         .details-content {
             padding: 0;
             max-width: 500px;
@@ -951,7 +1102,6 @@
             padding-bottom: 100px;
         }
         
-        /* IMAGEN DEL GRUPO CON MÁRGENES Y ESQUINAS REDONDEADAS */
         .group-image-large {
             width: calc(100% - 40px);
             height: 200px;
@@ -967,6 +1117,9 @@
             margin-bottom: 15px;
             color: #ffffff;
             padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .group-description {
@@ -993,7 +1146,6 @@
             font-size: 12px;
         }
         
-        /* Recuadro de estadísticas - SOLO 2 ESTADÍSTICAS */
         .stats-container {
             background-color: #2a2a2a;
             border-radius: 15px;
@@ -1023,7 +1175,6 @@
             color: #bbb;
         }
         
-        /* Barra inferior del menú de detalles - BOTÓN COMO ENLACE */
         .details-footer {
             position: fixed;
             bottom: 0;
@@ -1061,7 +1212,6 @@
             background-color: #27ae60;
         }
         
-        /* Contenido del menú lateral de publicación */
         .menu-content {
             padding: 20px;
             max-width: 500px;
@@ -1069,7 +1219,6 @@
             padding-bottom: 100px;
         }
         
-        /* Barra superior del menú de publicación - MÁS DELGADA */
         .menu-header {
             background-color: #121212;
             padding: 10px 16px;
@@ -1084,7 +1233,6 @@
             font-weight: bold;
         }
         
-        /* Barra inferior del menú de publicación */
         .publish-footer {
             position: fixed;
             bottom: 0;
@@ -1120,7 +1268,6 @@
             background-color: #1c64e0;
         }
         
-        /* Botón de cerrar el menú de publicación - X NORMAL */
         .close-menu {
             background: none;
             border: none;
@@ -1141,7 +1288,6 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
         
-        /* Imagen redondeada para seleccionar */
         .image-upload {
             width: 120px;
             height: 120px;
@@ -1200,7 +1346,6 @@
             display: none;
         }
         
-        /* Campos del formulario */
         .form-group {
             margin-bottom: 20px;
         }
@@ -1212,38 +1357,10 @@
             color: #ddd;
         }
         
-        .form-input {
-            width: 100%;
-            padding: 12px 14px;
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: #2575fc;
-        }
-        
-        .form-input::placeholder {
-            color: #777;
-        }
-        
-        textarea.form-input {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        /* Botón de publicar (ahora eliminado, está en la barra inferior) */
         .publish-button {
             display: none;
         }
         
-        /* Barra inferior principal - CON NUEVOS NOMBRES */
         .bottom-bar {
             position: fixed;
             bottom: 0;
@@ -1304,7 +1421,6 @@
             font-weight: 500;
         }
         
-        /* Botón del medio más destacado */
         .center-button {
             position: relative;
             z-index: 1;
@@ -1319,13 +1435,11 @@
             font-weight: 600;
         }
         
-        /* Quitar el recuadro azul en navegadores webkit */
         * {
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
         }
         
-        /* Ajustes para pantallas MUY pequeñas */
         @media (max-width: 360px) {
             .card-image {
                 height: 100px;
@@ -1348,7 +1462,7 @@
             }
             
             .main-content, .my-groups-content, .admin-content {
-                padding: 70px 12px 120px; /* Ajustado para pantallas pequeñas */
+                padding: 70px 12px 120px;
             }
             
             .menu-content, .details-content {
@@ -1423,7 +1537,6 @@
                 height: 120px;
             }
             
-            /* Ajustes para botones en línea en pantallas pequeñas */
             .request-actions {
                 flex-direction: column;
                 gap: 8px;
@@ -1435,7 +1548,6 @@
                 width: 100%;
             }
             
-            /* Ajustes para barra de búsqueda en pantallas pequeñas */
             .search-input {
                 padding: 10px 14px;
                 font-size: 13px;
@@ -1452,27 +1564,30 @@
                 padding: 10px 14px;
             }
             
-            /* Botón de editar en mis grupos */
             .edit-group-btn {
                 padding: 4px 8px !important;
                 font-size: 10px !important;
             }
             
-            /* Notificaciones en pantallas pequeñas */
-            .notification-item {
-                padding: 12px;
+            .sticker-image {
+                height: 70px;
             }
             
-            .notification-title {
-                font-size: 14px;
+            .admin-tabs {
+                flex-direction: column;
             }
             
-            .notification-message {
-                font-size: 12px;
+            .admin-tab-button {
+                width: 100%;
+            }
+            
+            .content-editable {
+                min-height: 40px;
+                padding: 10px 40px 10px 12px;
+                font-size: 13px;
             }
         }
         
-        /* Botón de editar en mis grupos */
         .edit-group-btn {
             background: none;
             border: 1px solid #3498db;
@@ -1490,7 +1605,6 @@
             color: white;
         }
         
-        /* Botón de eliminar en mis grupos */
         .delete-group-btn {
             background: none;
             border: 1px solid #e74c3c;
@@ -1507,7 +1621,6 @@
             color: white;
         }
         
-        /* Contenedor de acciones en mis grupos */
         .my-group-actions {
             display: flex;
             gap: 8px;
@@ -1515,7 +1628,6 @@
             justify-content: flex-end;
         }
         
-        /* Para pantallas más grandes, dar un ancho fijo a los menús */
         @media (min-width: 768px) {
             .side-menu, .group-details-menu {
                 width: 400px;
@@ -1566,7 +1678,6 @@
     </style>
 </head>
 <body>
-    <!-- Barra superior con título y lupa -->
     <header class="top-bar">
         <div class="title" id="adminTitleButton">
             <span class="heart">❤️‍🔥</span>
@@ -1575,15 +1686,13 @@
         <img src="https://i.ibb.co/n84F5wwC/lupa.png" alt="Buscar" class="search-icon" id="searchIcon">
     </header>
     
-    <!-- Barra de búsqueda (oculta inicialmente) -->
     <div class="search-bar" id="searchBar">
         <div class="search-input-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por etiquetas (ej: finanzas, tecnología)...">
+            <input type="text" class="search-input" id="searchInput" placeholder="Buscando.. (ej: Hentai, Femboys)">
             <button class="close-search" id="closeSearch">×</button>
         </div>
     </div>
 
-    <!-- MODAL DE CONTRASEÑA ADMIN -->
     <div class="admin-modal-overlay" id="adminModalOverlay">
         <div class="admin-modal">
             <h2 class="admin-modal-title">Acceso de Administrador</h2>
@@ -1594,33 +1703,46 @@
         </div>
     </div>
 
-    <!-- Contenido principal con DOS tarjetas - CONTENIDO ADULTO -->
+    <div class="stickers-modal-overlay" id="stickersModalOverlay">
+        <div class="stickers-modal">
+            <div class="stickers-modal-header">
+                <h2 class="stickers-modal-title">🎨 Stickers</h2>
+                <button class="stickers-modal-close" id="stickersModalClose">×</button>
+            </div>
+            <div class="stickers-grid" id="stickersGrid">
+                </div>
+            <div class="sticker-upload-container" id="stickerUploadContainer" style="display: none;">
+                <div class="sticker-upload-area" id="stickerUploadArea">
+                    <input type="file" id="stickerFileInput" accept="image/*,image/gif" style="display: none;">
+                    <div>📁</div>
+                    <div class="sticker-upload-text">Arrastra o haz clic para subir un sticker</div>
+                </div>
+                <button class="admin-button" id="uploadStickerButton">Subir Sticker</button>
+            </div>
+        </div>
+    </div>
+
     <main class="main-content">
         <div class="loading-spinner" id="mainLoading">
             <div class="spinner"></div>
             <p>Cargando grupos...</p>
         </div>
         <div class="cards-container" id="mainCardsContainer">
-            <!-- Los grupos publicados aparecerán aquí dinámicamente desde Firebase -->
-        </div>
+            </div>
     </main>
 
-    <!-- CONTENIDO PARA MIS GRUPOS -->
     <div class="my-groups-content">
         <div class="loading-spinner" id="myGroupsLoading">
             <div class="spinner"></div>
             <p>Cargando tus grupos...</p>
         </div>
         <div class="my-groups-container" id="myGroupsContainer">
-            <!-- Los grupos del usuario aparecerán aquí desde Firebase -->
-        </div>
-</div>
+            </div>
+    </div>
 
-    <!-- CONTENIDO PARA ADMIN -->
     <div class="admin-content">
         <h2 class="admin-section-title">Panel de Administración</h2>
         
-        <!-- RECUADRO DE ESTADÍSTICAS -->
         <div class="admin-stats-container">
             <div class="admin-stat-item">
                 <div class="admin-stats-number" id="statsPublished">0</div>
@@ -1632,74 +1754,56 @@
             </div>
         </div>
         
-        <!-- PESTAÑAS PARA CAMBIAR ENTRE VISTAS -->
         <div class="admin-tabs">
             <button class="admin-tab-button active" id="pendingTab">Solicitudes Pendientes</button>
             <button class="admin-tab-button" id="publishedTab">Grupos Publicados</button>
-            <button class="admin-tab-button" id="notificationsTab">Notificaciones</button>
+            <button class="admin-tab-button" id="stickersTab">Stickers</button>
         </div>
         
-        <!-- CONTENIDO DE SOLICITUDES PENDIENTES -->
         <div class="admin-tab-content active" id="pendingContent">
             <div class="loading-spinner" id="pendingLoading">
                 <div class="spinner"></div>
                 <p>Cargando solicitudes...</p>
             </div>
             <div class="requests-container" id="requestsContainer">
-                <!-- Las solicitudes de publicación aparecerán aquí desde Firebase -->
-            </div>
+                </div>
         </div>
         
-        <!-- CONTENIDO DE GRUPOS PUBLICADOS -->
         <div class="admin-tab-content" id="publishedContent">
             <div class="loading-spinner" id="publishedLoading">
                 <div class="spinner"></div>
                 <p>Cargando grupos publicados...</p>
             </div>
             <div class="my-groups-container" id="adminPublishedContainer">
-                <!-- Los grupos publicados aparecerán aquí desde Firebase -->
-            </div>
+                </div>
         </div>
         
-        <!-- CONTENIDO DE NOTIFICACIONES -->
-        <div class="admin-tab-content" id="notificationsContent">
-            <div class="notification-container">
-                <h3 class="admin-section-title">Enviar Notificación a Todos los Usuarios</h3>
-                <div class="notification-form">
-                    <div class="form-group">
-                        <label class="form-label" for="notificationTitle">Título de la notificación</label>
-                        <input type="text" id="notificationTitle" class="notification-input" placeholder="Título de la notificación (opcional)">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="notificationMessage">Mensaje de la notificación</label>
-                        <textarea id="notificationMessage" class="notification-input" rows="5" placeholder="Escribe el mensaje que quieres enviar a todos los usuarios..."></textarea>
-                    </div>
-                    <button class="notification-send-btn" id="sendNotificationButton">Enviar Notificación</button>
-                </div>
+        <div class="admin-tab-content" id="stickersContent">
+            <div class="loading-spinner" id="stickersLoading">
+                <div class="spinner"></div>
+                <p>Cargando stickers...</p>
             </div>
-            
-            <div class="notification-container">
-                <h3 class="admin-section-title">Notificaciones Enviadas</h3>
-                <div class="loading-spinner" id="notificationsLoading">
-                    <div class="spinner"></div>
-                    <p>Cargando notificaciones...</p>
+            <div class="admin-section-title">Gestión de Stickers</div>
+            <div class="sticker-upload-container">
+                <div class="sticker-upload-area" id="adminStickerUploadArea">
+                    <input type="file" id="adminStickerFileInput" accept="image/*,image/gif" style="display: none;">
+                    <div>📁</div>
+                    <div class="sticker-upload-text">Arrastra o haz clic para subir un sticker (GIF o imagen)</div>
                 </div>
-                <div class="requests-container" id="notificationsContainer">
-                    <!-- Las notificaciones aparecerán aquí desde Firebase -->
-                </div>
+                <button class="admin-button" id="adminUploadStickerButton">Subir Sticker</button>
             </div>
+            <div class="stickers-grid" id="adminStickersGrid">
+                </div>
         </div>
     </div>
 
-    <!-- MENÚ LATERAL DE PUBLICACIÓN DESDE LA DERECHA -->
     <div class="side-menu">
         <div class="menu-header">
-            <div class="menu-title" id="menuTitle">📊 PUBLICAR MIS GRUPOS</div>
+            <div class="menu-title" id="menuTitle">❤️‍🔥 Subir mi Grupo</div>
             <button class="close-menu">×</button>
         </div>
         
         <div class="menu-content">
-            <!-- Imagen redondeada para seleccionar -->
             <div class="image-upload" id="imageUpload">
                 <div class="image-upload-icon">🖼️</div>
                 <div class="image-upload-text">Seleccionar imagen</div>
@@ -1707,15 +1811,30 @@
                 <input type="file" accept="image/*" class="upload-input" id="fileInput">
             </div>
             
-            <!-- Campos del formulario -->
             <div class="form-group">
                 <label class="form-label" for="groupName">Nombre del grupo</label>
-                <input type="text" id="groupName" class="form-input" placeholder="Ej: Inversiones Internacionales">
+                <div class="form-input-container">
+                    <div id="groupNameEditable" class="content-editable" 
+                         contenteditable="true" 
+                         data-placeholder="Ej: Inversiones Internacionales"></div>
+                    <input type="hidden" id="groupName" value="">
+                    <button class="sticker-inside-button" id="stickerButtonName">
+                        <img src="https://i.ibb.co/M3SG1JK/1f3a8-color.webp" alt="Añadir sticker">
+                    </button>
+                </div>
             </div>
             
             <div class="form-group">
                 <label class="form-label" for="groupDescription">Descripción</label>
-                <textarea id="groupDescription" class="form-input" rows="3" placeholder="Describe de qué trata el grupo..."></textarea>
+                <div class="form-input-container">
+                    <div id="groupDescriptionEditable" class="content-editable" 
+                         contenteditable="true" 
+                         data-placeholder="Describe de qué trata el grupo..."></div>
+                    <input type="hidden" id="groupDescription" value="">
+                    <button class="sticker-inside-button" id="stickerButtonDescription">
+                        <img src="https://i.ibb.co/M3SG1JK/1f3a8-color.webp" alt="Añadir sticker">
+                    </button>
+                </div>
             </div>
             
             <div class="form-group">
@@ -1728,24 +1847,20 @@
                 <input type="url" id="groupLink" class="form-input" placeholder="https://ejemplo.com/grupo">
             </div>
             
-            <!-- Campo oculto para el ID del grupo que se está editando -->
             <input type="hidden" id="editingGroupId" value="">
             <input type="hidden" id="editingGroupType" value="">
+            <input type="hidden" id="currentStickerTarget" value="">
             
-            <!-- Botón para publicar (OCULTO, AHORA ESTÁ EN LA BARRA INFERIOR) -->
-            <button class="publish-button" id="publishButton">Publicar grupo</button>
+            <button class="publish-button" id="publishButton">Publicar Grupo</button>
         </div>
         
-        <!-- BARRA INFERIOR PARA PUBLICAR GRUPO -->
         <div class="publish-footer">
-            <button class="publish-footer-button" id="publishFooterButton">Publicar grupo</button>
+            <button class="publish-footer-button" id="publishFooterButton">Publicar Grupo</button>
         </div>
     </div>
     
-    <!-- MENÚ LATERAL DE DETALLES DEL GRUPO -->
     <div class="group-details-menu">
         <div class="details-content">
-            <!-- BARRA SUPERIOR STICKY QUE SE MUEVA CON EL DESPLAZAMIENTO -->
             <div class="details-header">
                 <button class="back-button" id="backButton">
                     <img src="https://i.ibb.co/k6Vmd994/flecha.png" alt="Volver" class="back-arrow">
@@ -1754,7 +1869,6 @@
                 <div style="width: 40px;"></div>
             </div>
             
-            <!-- IMAGEN CON MÁRGENES Y ESQUINAS REDONDEADAS -->
             <img src="" alt="Imagen del grupo" class="group-image-large" id="groupImageLarge">
             
             <h2 class="group-title" id="groupTitle"></h2>
@@ -1763,7 +1877,6 @@
             
             <div class="group-tags" id="groupTagsDetails"></div>
             
-            <!-- ESTADÍSTICAS SOLO CON 2 ELEMENTOS -->
             <div class="stats-container">
                 <div class="stat-item">
                     <div class="stat-number" id="viewsCount">0</div>
@@ -1776,16 +1889,13 @@
             </div>
         </div>
         
-        <!-- BARRA INFERIOR CON ENLACE PARA UNIRSE -->
         <div class="details-footer">
-            <a href="#" target="_blank" class="join-button" id="joinButton">Unirse al grupo</a>
+            <button class="join-button" id="joinButton">Unirse al grupo</button>
         </div>
     </div>
     
-    <!-- Overlay para cerrar los menús -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
-    <!-- Barra inferior con NUEVOS NOMBRES -->
     <footer class="bottom-bar">
         <div class="nav-item active" id="homeButton">
             <img src="https://i.ibb.co/Z1wD350f/home.png" alt="Inicio" class="nav-icon">
@@ -1802,7 +1912,6 @@
             <span class="nav-label">Mis grupos</span>
         </div>
         
-        <!-- Botón de Admin (oculto por defecto) CON NUEVO ICONO -->
         <div class="nav-item" id="adminButton" style="display: none;">
             <img src="https://i.ibb.co/V6N69ZM/escudo-antimalware.png" alt="Admin" class="nav-icon">
             <span class="nav-label">Admin</span>
@@ -1849,6 +1958,13 @@
         const menuTitle = document.getElementById('menuTitle');
         const editingGroupId = document.getElementById('editingGroupId');
         const editingGroupType = document.getElementById('editingGroupType');
+        const currentStickerTarget = document.getElementById('currentStickerTarget');
+        
+        // Nuevos elementos para campos editables
+        const groupNameEditable = document.getElementById('groupNameEditable');
+        const groupDescriptionEditable = document.getElementById('groupDescriptionEditable');
+        const groupNameHidden = document.getElementById('groupName');
+        const groupDescriptionHidden = document.getElementById('groupDescription');
         
         // Elementos de búsqueda
         const searchBar = document.getElementById('searchBar');
@@ -1865,10 +1981,21 @@
         // Elementos de pestañas admin
         const pendingTab = document.getElementById('pendingTab');
         const publishedTab = document.getElementById('publishedTab');
-        const notificationsTab = document.getElementById('notificationsTab');
+        const stickersTab = document.getElementById('stickersTab');
         const pendingContent = document.getElementById('pendingContent');
         const publishedContent = document.getElementById('publishedContent');
-        const notificationsContent = document.getElementById('notificationsContent');
+        const stickersContent = document.getElementById('stickersContent');
+        
+        // Elementos de stickers
+        const stickersModalOverlay = document.getElementById('stickersModalOverlay');
+        const stickersModalClose = document.getElementById('stickersModalClose');
+        const stickersGrid = document.getElementById('stickersGrid');
+        const stickerButtonName = document.getElementById('stickerButtonName');
+        const stickerButtonDescription = document.getElementById('stickerButtonDescription');
+        const adminStickersGrid = document.getElementById('adminStickersGrid');
+        const adminStickerUploadArea = document.getElementById('adminStickerUploadArea');
+        const adminStickerFileInput = document.getElementById('adminStickerFileInput');
+        const adminUploadStickerButton = document.getElementById('adminUploadStickerButton');
         
         // Elementos de estadísticas
         const statsPublished = document.getElementById('statsPublished');
@@ -1879,16 +2006,10 @@
         const myGroupsLoading = document.getElementById('myGroupsLoading');
         const pendingLoading = document.getElementById('pendingLoading');
         const publishedLoading = document.getElementById('publishedLoading');
-        const notificationsLoading = document.getElementById('notificationsLoading');
-        
-        // Elementos de notificaciones
-        const sendNotificationButton = document.getElementById('sendNotificationButton');
-        const notificationTitle = document.getElementById('notificationTitle');
-        const notificationMessage = document.getElementById('notificationMessage');
-        const notificationsContainer = document.getElementById('notificationsContainer');
+        const stickersLoading = document.getElementById('stickersLoading');
         
         // Variables globales
-        let currentUserId = generateUserId();
+        let currentUserId = null;
         let currentGroupDetails = null;
         let isAdmin = false;
         const ADMIN_PASSWORD = '200506';
@@ -1896,38 +2017,431 @@
         let isEditing = false;
         let currentEditGroupKey = null;
         let currentEditGroupType = null;
+        let stickersList = [];
+        let stickersMap = new Map(); // Para mapear stickers por key
         
-        // Generar un ID de usuario único (simulado)
-        function generateUserId() {
-            // Intentar recuperar el ID de usuario de localStorage
+        // ========== FUNCIÓN DE CARGA INICIAL OPTIMIZADA ==========
+        
+        // Función dedicada solo para cargar datos de stickers (sin renderizar UI)
+        async function loadStickersData() {
+            try {
+                const snapshot = await database.ref('stickers').once('value');
+                const stickers = snapshot.val();
+                
+                if (stickers) {
+                    stickersMap.clear();
+                    // Llenar el mapa inmediatamente
+                    for (const key in stickers) {
+                        stickersMap.set(key, stickers[key].data);
+                    }
+                }
+                return true;
+            } catch (error) {
+                console.error('Error precargando stickers:', error);
+                return false;
+            }
+        }
+
+        // ========== FUNCIONES DE STICKERS ==========
+        
+        // Función para abrir modal de stickers
+        function openStickersModal(target) {
+            currentStickerTarget.value = target;
+            stickersModalOverlay.classList.add('active');
+            loadStickersForSelection();
+        }
+        
+        // Cerrar modal de stickers
+        stickersModalClose.addEventListener('click', () => {
+            stickersModalOverlay.classList.remove('active');
+        });
+        
+        stickersModalOverlay.addEventListener('click', (e) => {
+            if (e.target === stickersModalOverlay) {
+                stickersModalOverlay.classList.remove('active');
+            }
+        });
+        
+        // Eventos para botones de stickers dentro de los campos
+        stickerButtonName.addEventListener('click', () => {
+            openStickersModal('name');
+        });
+        
+        stickerButtonDescription.addEventListener('click', () => {
+            openStickersModal('description');
+        });
+        
+        // Cargar stickers para selección
+        async function loadStickersForSelection() {
+            stickersGrid.innerHTML = '';
+            
+            // Usar el mapa que ya tenemos cargado si existe
+            if (stickersMap.size > 0) {
+                stickersMap.forEach((data, key) => {
+                    const stickerElement = document.createElement('div');
+                    stickerElement.className = 'sticker-item';
+                    stickerElement.innerHTML = `
+                        <img src="${data}" alt="Sticker" class="sticker-image">
+                    `;
+                    
+                    stickerElement.addEventListener('click', () => {
+                        insertStickerIntoField(key, data);
+                    });
+                    
+                    stickersGrid.appendChild(stickerElement);
+                });
+            } else {
+                // Si por alguna razón el mapa está vacío, intentar cargar de nuevo
+                try {
+                    await loadStickersData();
+                    if (stickersMap.size === 0) {
+                        stickersGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #bbb;">No hay stickers disponibles.</div>';
+                    } else {
+                        // Recursivamente llamar para pintar
+                        loadStickersForSelection();
+                    }
+                } catch (error) {
+                    stickersGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #e74c3c;">Error al cargar los stickers.</div>';
+                }
+            }
+        }
+        
+        // Insertar sticker en el campo correspondiente
+        function insertStickerIntoField(stickerKey, stickerData) {
+            const target = currentStickerTarget.value;
+            let editableField;
+            let hiddenField;
+            
+            if (target === 'name') {
+                editableField = groupNameEditable;
+                hiddenField = groupNameHidden;
+            } else if (target === 'description') {
+                editableField = groupDescriptionEditable;
+                hiddenField = groupDescriptionHidden;
+            }
+            
+            if (!editableField) return;
+            
+            // Enfocar el campo editable
+            editableField.focus();
+            
+            // Crear un elemento img para el sticker
+            const stickerImg = document.createElement('img');
+            stickerImg.src = stickerData;
+            stickerImg.alt = 'Sticker';
+            stickerImg.style.width = '24px';
+            stickerImg.style.height = '24px';
+            stickerImg.style.verticalAlign = 'middle';
+            stickerImg.style.margin = '0 2px';
+            stickerImg.setAttribute('data-sticker-key', stickerKey);
+            
+            // Insertar la imagen en el campo editable
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(stickerImg);
+                range.setStartAfter(stickerImg);
+                range.setEndAfter(stickerImg);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else {
+                editableField.appendChild(stickerImg);
+            }
+            
+            // Actualizar el campo oculto
+            updateHiddenFieldFromEditable(target);
+            
+            // Cerrar el modal
+            stickersModalOverlay.classList.remove('active');
+        }
+        
+        // Función para actualizar el campo oculto a partir del contenido editable
+        function updateHiddenFieldFromEditable(fieldType) {
+            let editableField, hiddenField;
+            
+            if (fieldType === 'name') {
+                editableField = groupNameEditable;
+                hiddenField = groupNameHidden;
+            } else if (fieldType === 'description') {
+                editableField = groupDescriptionEditable;
+                hiddenField = groupDescriptionHidden;
+            } else {
+                return;
+            }
+            
+            if (!editableField || !hiddenField) return;
+            
+            // Recorrer todos los nodos del campo editable
+            let hiddenValue = '';
+            const nodes = editableField.childNodes;
+            
+            for (const node of nodes) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    hiddenValue += node.textContent;
+                } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
+                    const stickerKey = node.getAttribute('data-sticker-key');
+                    if (stickerKey) {
+                        hiddenValue += `[sticker:${stickerKey}]`;
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Si hay otros elementos, agregar su texto
+                    hiddenValue += node.textContent;
+                }
+            }
+            
+            hiddenField.value = hiddenValue;
+        }
+        
+        // Eventos para actualizar campos ocultos cuando se edita
+        if (groupNameEditable) {
+            groupNameEditable.addEventListener('input', () => {
+                updateHiddenFieldFromEditable('name');
+            });
+            
+            groupNameEditable.addEventListener('paste', (e) => {
+                // Permitir pegar texto pero no HTML
+                e.preventDefault();
+                const text = e.clipboardData.getData('text/plain');
+                document.execCommand('insertText', false, text);
+            });
+        }
+        
+        if (groupDescriptionEditable) {
+            groupDescriptionEditable.addEventListener('input', () => {
+                updateHiddenFieldFromEditable('description');
+            });
+            
+            groupDescriptionEditable.addEventListener('paste', (e) => {
+                // Permitir pegar texto pero no HTML
+                e.preventDefault();
+                const text = e.clipboardData.getData('text/plain');
+                document.execCommand('insertText', false, text);
+            });
+        }
+        
+        // Procesar texto para mostrar stickers - AHORA USA EL MAPA PRECARGADO
+        function processStickersInText(text) {
+            if (!text) return text;
+            
+            // Buscar patrones [sticker:KEY] y reemplazar por imágenes
+            const stickerRegex = /\[sticker:([^\]]+)\]/g;
+            return text.replace(stickerRegex, (match, key) => {
+                const stickerData = stickersMap.get(key);
+                if (stickerData) {
+                    return `<img src="${stickerData}" alt="Sticker" style="width: 20px; height: 20px; vertical-align: middle; margin: 0 2px;" data-sticker-key="${key}">`;
+                } else {
+                    return `<span style="display:inline-block; width:20px; height:20px; background:#2a2a2a; border-radius:4px; vertical-align:middle; margin:0 2px;" title="Sticker no encontrado"></span>`;
+                }
+            });
+        }
+        
+        // Cargar contenido en campos editables
+        function loadContentToEditable(content, fieldType) {
+            let editableField;
+            
+            if (fieldType === 'name') {
+                editableField = groupNameEditable;
+            } else if (fieldType === 'description') {
+                editableField = groupDescriptionEditable;
+            }
+            
+            if (!editableField || !content) return;
+            
+            const stickerRegex = /\[sticker:([^\]]+)\]/g;
+            let htmlContent = '';
+            let lastIndex = 0;
+            let match;
+            
+            while ((match = stickerRegex.exec(content)) !== null) {
+                htmlContent += content.substring(lastIndex, match.index);
+                const stickerKey = match[1];
+                const stickerData = stickersMap.get(stickerKey);
+                
+                if (stickerData) {
+                    htmlContent += `<img src="${stickerData}" alt="Sticker" style="width: 24px; height: 24px; vertical-align: middle; margin: 0 2px;" data-sticker-key="${stickerKey}">`;
+                } else {
+                    htmlContent += `<span style="display:inline-block; width:24px; height:24px; background:#2a2a2a; border-radius:4px; vertical-align:middle; margin:0 2px;" title="Sticker no encontrado"></span>`;
+                }
+                
+                lastIndex = stickerRegex.lastIndex;
+            }
+            
+            htmlContent += content.substring(lastIndex);
+            editableField.innerHTML = htmlContent;
+            updateHiddenFieldFromEditable(fieldType);
+        }
+        
+        // ========== FUNCIONES DE ADMIN PARA STICKERS ==========
+        
+        // Cargar stickers en el panel de admin
+        async function loadAdminStickers() {
+            showLoading(stickersLoading);
+            adminStickersGrid.innerHTML = '';
+            
+            try {
+                // Usamos el mapa precargado si es posible, o refrescamos
+                await loadStickersData();
+                
+                if (stickersMap.size === 0) {
+                    adminStickersGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #bbb;">No hay stickers. Sube el primero.</div>';
+                    hideLoading(stickersLoading);
+                    return;
+                }
+                
+                adminStickersGrid.innerHTML = '';
+                
+                stickersMap.forEach((data, key) => {
+                    createAdminStickerItem(data, key);
+                });
+                
+                hideLoading(stickersLoading);
+            } catch (error) {
+                console.error('Error cargando stickers para admin:', error);
+                hideLoading(stickersLoading);
+                adminStickersGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #e74c3c;">Error al cargar los stickers.</div>';
+            }
+        }
+        
+        function createAdminStickerItem(data, key) {
+            const stickerElement = document.createElement('div');
+            stickerElement.className = 'sticker-item';
+            stickerElement.innerHTML = `
+                <img src="${data}" alt="Sticker" class="sticker-image">
+                <button class="sticker-delete-btn" data-key="${key}">Eliminar</button>
+            `;
+            
+            adminStickersGrid.appendChild(stickerElement);
+            
+            stickerElement.querySelector('.sticker-delete-btn').addEventListener('click', async (e) => {
+                e.stopPropagation(); // Evitar click en la imagen
+                if (confirm('¿Estás seguro de que quieres eliminar este sticker?')) {
+                    try {
+                        await database.ref('stickers/' + key).remove();
+                        stickerElement.remove();
+                        stickersMap.delete(key);
+                    } catch (error) {
+                        console.error('Error eliminando sticker:', error);
+                        alert('Error al eliminar el sticker');
+                    }
+                }
+            });
+        }
+        
+        adminStickerUploadArea.addEventListener('click', () => {
+            adminStickerFileInput.click();
+        });
+        
+        let adminStickerFile = null;
+        
+        adminStickerFileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                adminStickerFile = this.files[0];
+                
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(adminStickerFile.type)) {
+                    alert('Solo se permiten imágenes (JPEG, PNG, GIF, WebP)');
+                    this.value = '';
+                    adminStickerFile = null;
+                    return;
+                }
+                
+                if (adminStickerFile.size > 2 * 1024 * 1024) {
+                    alert('El archivo es demasiado grande. Máximo 2MB');
+                    this.value = '';
+                    adminStickerFile = null;
+                    return;
+                }
+            }
+        });
+        
+        adminUploadStickerButton.addEventListener('click', async () => {
+            if (!adminStickerFile) {
+                alert('Selecciona un archivo primero');
+                return;
+            }
+            
+            try {
+                const base64Data = await convertImageToBase64(adminStickerFile);
+                
+                adminUploadStickerButton.disabled = true;
+                adminUploadStickerButton.textContent = 'Subiendo...';
+                
+                const newStickerRef = database.ref('stickers').push();
+                const stickerKey = newStickerRef.key;
+                await newStickerRef.set({
+                    data: base64Data,
+                    name: adminStickerFile.name,
+                    type: adminStickerFile.type,
+                    uploadedAt: new Date().toISOString()
+                });
+                
+                stickersMap.set(stickerKey, base64Data);
+                
+                adminStickerFileInput.value = '';
+                adminStickerFile = null;
+                adminUploadStickerButton.disabled = false;
+                adminUploadStickerButton.textContent = 'Subir Sticker';
+                
+                alert('Sticker subido exitosamente');
+                await loadAdminStickers();
+                
+            } catch (error) {
+                console.error('Error subiendo sticker:', error);
+                adminUploadStickerButton.disabled = false;
+                adminUploadStickerButton.textContent = 'Subir Sticker';
+                alert('Error al subir el sticker');
+            }
+        });
+        
+        // ========== FUNCIONES GENERALES ==========
+        
+        function getSessionId() {
+            let sessionId = localStorage.getItem('redview_session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('redview_session_id', sessionId);
+            }
+            return sessionId;
+        }
+        
+        function getOrCreateUserId() {
             let userId = localStorage.getItem('redview_user_id');
             if (!userId) {
-                // Si no existe, crear uno nuevo
-                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('redview_user_id', userId);
-                
-                // Registrar usuario en Firebase
-                registerUser(userId);
+                return null;
             }
             return userId;
         }
         
-        // Registrar usuario en la carpeta "usuarios" de Firebase
-        async function registerUser(userId) {
+        function generateUserIdForPublishing() {
+            let userId = localStorage.getItem('redview_user_id');
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('redview_user_id', userId);
+                registerUserOnFirstPublish(userId);
+            }
+            currentUserId = userId;
+            return userId;
+        }
+
+        // Función para mezclar un array aleatoriamente (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        async function registerUserOnFirstPublish(userId) {
             try {
                 const userRef = database.ref('usuarios/' + userId);
                 const snapshot = await userRef.once('value');
-                
                 if (!snapshot.exists()) {
                     await userRef.set({
                         id: userId,
                         fechaRegistro: new Date().toISOString(),
                         gruposPublicados: 0,
-                        ultimaConexion: new Date().toISOString()
-                    });
-                } else {
-                    // Actualizar última conexión
-                    await userRef.update({
                         ultimaConexion: new Date().toISOString()
                     });
                 }
@@ -1936,7 +2450,21 @@
             }
         }
         
-        // Función para convertir imagen a base64
+        async function updateUserLastConnection(userId) {
+            try {
+                if (!userId) return;
+                const userRef = database.ref('usuarios/' + userId);
+                const snapshot = await userRef.once('value');
+                if (snapshot.exists()) {
+                    await userRef.update({
+                        ultimaConexion: new Date().toISOString()
+                    });
+                }
+            } catch (error) {
+                console.error('Error actualizando última conexión:', error);
+            }
+        }
+        
         function convertImageToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1946,34 +2474,22 @@
             });
         }
         
-        // Función auxiliar para obtener la fuente de la imagen según la estructura de tu base de datos
         function getImageSource(grupo) {
-            // Primero revisar si existe 'imagen' (base64 o URL)
             if (grupo.imagen) {
-                // Si es una URL base64
-                if (grupo.imagen.startsWith('data:image')) {
-                    return grupo.imagen;
-                }
-                // Si es una URL normal (como https://i.ibb.co/99JSCLFS/028866fd0493.jpg)
-                else if (grupo.imagen.startsWith('http')) {
-                    return grupo.imagen;
-                }
+                if (grupo.imagen.startsWith('data:image')) return grupo.imagen;
+                else if (grupo.imagen.startsWith('http')) return grupo.imagen;
             }
-            // Luego revisar si existe 'imageBase64'
             else if (grupo.imageBase64 && grupo.imageBase64.startsWith('data:image')) {
                 return grupo.imageBase64;
             }
-            // Luego revisar si existe 'imageUrl'
             else if (grupo.imageUrl && grupo.imageUrl.startsWith('http')) {
                 return grupo.imageUrl;
             }
-            // Imagen por defecto
             else {
                 return 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
             }
         }
         
-        // Mostrar/ocultar loading
         function showLoading(loader) {
             if (loader) loader.style.display = 'block';
         }
@@ -1982,7 +2498,6 @@
             if (loader) loader.style.display = 'none';
         }
         
-        // Función para mostrar/ocultar barra de búsqueda
         const toggleSearchBar = (show) => {
             if (show) {
                 searchBar.style.display = 'flex';
@@ -1990,12 +2505,10 @@
             } else {
                 searchBar.style.display = 'none';
                 searchInput.value = '';
-                // Restaurar todas las tarjetas al cerrar la búsqueda
                 restoreAllCards();
             }
         };
         
-        // Función para restaurar todas las tarjetas
         const restoreAllCards = () => {
             const cards = document.querySelectorAll('.card');
             cards.forEach(card => {
@@ -2003,7 +2516,6 @@
             });
         };
         
-        // Función para filtrar tarjetas por etiquetas
         const filterCardsByTags = (searchTerm) => {
             const cards = document.querySelectorAll('.card');
             const term = searchTerm.toLowerCase().trim();
@@ -2013,26 +2525,16 @@
                 return;
             }
             
-            // Separar términos de búsqueda por comas o espacios
             const searchTerms = term.split(/[, ]+/).filter(t => t.length > 0);
             
             cards.forEach(card => {
-                // Obtener las etiquetas del atributo data-tags
                 let tags = card.dataset.tags || '';
-                
-                // Verificar si alguna de las etiquetas coincide con algún término de búsqueda
-                const hasMatch = searchTerms.some(searchTerm => 
-                    tags.includes(searchTerm)
-                );
-                
-                // También buscar en el título y descripción
+                const hasMatch = searchTerms.some(searchTerm => tags.includes(searchTerm));
                 const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
                 const description = card.querySelector('.card-description')?.textContent.toLowerCase() || '';
-                
                 const titleMatch = searchTerms.some(searchTerm => title.includes(searchTerm));
                 const descriptionMatch = searchTerms.some(searchTerm => description.includes(searchTerm));
                 
-                // Mostrar u ocultar la tarjeta según coincidencia
                 if (hasMatch || titleMatch || descriptionMatch) {
                     card.style.display = 'flex';
                 } else {
@@ -2041,7 +2543,6 @@
             });
         };
         
-        // Función para actualizar la visibilidad de la lupa
         const updateSearchIconVisibility = () => {
             if (body.classList.contains('show-my-groups') || body.classList.contains('show-admin')) {
                 searchIcon.style.display = 'none';
@@ -2050,14 +2551,11 @@
             }
         };
         
-        // Función para actualizar el estado activo de la barra inferior
         const updateBottomBarActive = () => {
-            // Remover clase active de todos los botones
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Añadir clase active al botón correspondiente
             if (body.classList.contains('show-my-groups')) {
                 myGroupsButton.classList.add('active');
             } else if (body.classList.contains('show-admin')) {
@@ -2067,7 +2565,6 @@
             }
         };
         
-        // Abrir menú lateral de publicación
         menuButton.addEventListener('click', () => {
             resetPublishForm();
             body.classList.add('menu-open');
@@ -2077,7 +2574,6 @@
             updateBottomBarActive();
         });
         
-        // Cerrar menú lateral de publicación
         const closePublishMenu = () => {
             body.classList.remove('menu-open');
             resetPublishForm();
@@ -2085,26 +2581,30 @@
         
         closeMenuButton.addEventListener('click', closePublishMenu);
         
-        // Resetear formulario de publicación
         function resetPublishForm() {
             isEditing = false;
             currentEditGroupKey = null;
             currentEditGroupType = null;
             editingGroupId.value = '';
             editingGroupType.value = '';
-            document.getElementById('groupName').value = '';
-            document.getElementById('groupDescription').value = '';
+            currentStickerTarget.value = '';
+            
+            if (groupNameEditable) groupNameEditable.innerHTML = '';
+            if (groupDescriptionEditable) groupDescriptionEditable.innerHTML = '';
+            
+            if (groupNameHidden) groupNameHidden.value = '';
+            if (groupDescriptionHidden) groupDescriptionHidden.value = '';
+            
             document.getElementById('groupTags').value = '';
             document.getElementById('groupLink').value = '';
             imagePreview.src = '';
             imageUpload.classList.remove('has-image');
             uploadedImageFile = null;
             fileInput.value = '';
-            menuTitle.textContent = '📊 PUBLICAR MIS GRUPOS';
-            publishFooterButton.textContent = 'Publicar grupo';
+            menuTitle.textContent = '❤️‍🔥 Publicar mis grupos';
+            publishFooterButton.textContent = 'Publicar Grupo';
         }
         
-        // Navegación entre vistas
         homeButton.addEventListener('click', () => {
             body.classList.remove('show-my-groups');
             body.classList.remove('show-admin');
@@ -2129,29 +2629,24 @@
             loadAdminData();
         });
         
-        // Mostrar barra de búsqueda
         searchIcon.addEventListener('click', () => {
             toggleSearchBar(true);
         });
         
-        // Cerrar barra de búsqueda
         closeSearch.addEventListener('click', () => {
             toggleSearchBar(false);
         });
         
-        // Filtrar tarjetas mientras se escribe
         searchInput.addEventListener('input', (e) => {
             filterCardsByTags(e.target.value);
         });
         
-        // Cerrar barra de búsqueda con tecla Escape
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 toggleSearchBar(false);
             }
         });
         
-        // Modal de administrador
         adminTitleButton.addEventListener('click', () => {
             adminModalOverlay.classList.add('active');
             adminModalPassword.focus();
@@ -2173,7 +2668,7 @@
                 isAdmin = true;
                 adminButton.style.display = 'flex';
                 closeAdminModal();
-                alert('Acceso de administrador concedido. Ahora puedes ver el panel de administración en la barra inferior.');
+                alert('Acceso de administrador concedido.');
             } else {
                 alert('Contraseña incorrecta');
                 adminModalPassword.value = '';
@@ -2181,14 +2676,12 @@
             }
         });
         
-        // También permitir login con Enter
         adminModalPassword.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 adminModalSubmit.click();
             }
         });
         
-        // Cerrar modal de admin con Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && adminModalOverlay.classList.contains('active')) {
                 closeAdminModal();
@@ -2200,44 +2693,41 @@
             adminModalPassword.value = '';
         }
         
-        // Pestañas de administrador
         pendingTab.addEventListener('click', () => {
             pendingTab.classList.add('active');
             publishedTab.classList.remove('active');
-            notificationsTab.classList.remove('active');
+            stickersTab.classList.remove('active');
             pendingContent.classList.add('active');
             publishedContent.classList.remove('active');
-            notificationsContent.classList.remove('active');
+            stickersContent.classList.remove('active');
             loadPendingRequests();
         });
         
         publishedTab.addEventListener('click', () => {
             publishedTab.classList.add('active');
             pendingTab.classList.remove('active');
-            notificationsTab.classList.remove('active');
+            stickersTab.classList.remove('active');
             publishedContent.classList.add('active');
             pendingContent.classList.remove('active');
-            notificationsContent.classList.remove('active');
+            stickersContent.classList.remove('active');
             loadAdminPublishedGroups();
         });
         
-        notificationsTab.addEventListener('click', () => {
-            notificationsTab.classList.add('active');
+        stickersTab.addEventListener('click', () => {
+            stickersTab.classList.add('active');
             pendingTab.classList.remove('active');
             publishedTab.classList.remove('active');
-            notificationsContent.classList.add('active');
+            stickersContent.classList.add('active');
             pendingContent.classList.remove('active');
             publishedContent.classList.remove('active');
-            loadNotifications();
+            loadAdminStickers();
         });
         
-        // Cerrar cualquier menú al hacer clic en el overlay
         menuOverlay.addEventListener('click', () => {
             closePublishMenu();
             closeGroupDetails();
         });
         
-        // Seleccionar imagen para publicación
         imageUpload.addEventListener('click', () => {
             fileInput.click();
         });
@@ -2256,14 +2746,19 @@
             }
         });
         
-        // ========== FUNCIONES DE FIREBASE ==========
+        // ========== FIREBASE LOAD LOGIC - MODIFICADO PARA PARALELISMO ==========
         
-        // Cargar grupos publicados (para todos) - AJUSTADO A TU ESTRUCTURA
         async function loadPublishedGroups() {
             showLoading(mainLoading);
             mainCardsContainer.innerHTML = '';
             
             try {
+                // AHORA NO VOLVEMOS A CARGAR STICKERS SI YA ESTÁN, PERO ASEGURAMOS QUE EXISTAN
+                // El DOMContentLoaded ya se encargó, pero por si acaso esta función se llama sola:
+                if (stickersMap.size === 0) {
+                   await loadStickersData();
+                }
+
                 const snapshot = await database.ref('grupos').once('value');
                 const grupos = snapshot.val();
                 
@@ -2278,28 +2773,30 @@
                 }
                 
                 mainCardsContainer.innerHTML = '';
-                let index = 0;
-                const gruposKeys = new Set(); // Para evitar duplicados
                 
-                for (const key in grupos) {
-                    const grupo = grupos[key];
-                    // Verificar si el grupo está publicado (estado: "publicado" o status: "approved")
-                    // IMPORTANTE: Solo mostrar grupos publicados, no todos
+                const gruposArray = Object.entries(grupos).map(([key, value]) => ({ key, ...value }));
+                
+                // --- CAMBIO: USAR SHUFFLE EN LUGAR DE SORT ---
+                // gruposArray.sort(...) <-- Eliminado
+                shuffleArray(gruposArray); // <-- Agregado para aleatoriedad
+                
+                let index = 0;
+                
+                for (const grupoObj of gruposArray) {
+                    const grupo = grupoObj;
+                    const key = grupoObj.key;
+                    
                     const estado = grupo.estado || grupo.status || '';
                     if (estado === "publicado" || estado === "approved") {
-                        // Evitar duplicados
-                        if (!gruposKeys.has(key)) {
-                            gruposKeys.add(key);
-                            await createGroupCard(grupo, key, index + 1, mainCardsContainer);
-                            index++;
-                        }
+                        await createGroupCard(grupo, key, index + 1, mainCardsContainer);
+                        index++;
                     }
                 }
                 
                 if (index === 0) {
                     mainCardsContainer.innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #bbb;">
-                            No hay grupos publicados aún. Sé el primero en publicar un grupo.
+                            No hay grupos publicados aún.
                         </div>
                     `;
                 }
@@ -2310,31 +2807,44 @@
                 hideLoading(mainLoading);
                 mainCardsContainer.innerHTML = `
                     <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #e74c3c;">
-                        Error al cargar los grupos. Intenta de nuevo más tarde.
+                        Error al cargar los grupos.
                     </div>
                 `;
             }
         }
         
-        // Cargar mis grupos (del usuario actual) - AJUSTADO A TU ESTRUCTURA
         async function loadMyGroups() {
             showLoading(myGroupsLoading);
             myGroupsContainer.innerHTML = '';
             
             try {
-                // Primero buscar en solicitudes (grupos pendientes del usuario)
-                const snapshotSolicitudes = await database.ref('solicitudes').orderByChild('userid').equalTo(currentUserId).once('value');
-                const misSolicitudes = snapshotSolicitudes.val();
+                currentUserId = getOrCreateUserId();
+                if (!currentUserId) {
+                    myGroupsContainer.innerHTML = `
+                        <div class="my-group-placeholder">
+                            <p style="text-align: center; color: #bbb; padding: 40px 20px;">
+                                Tus grupos publicados aparecerán aquí.
+                            </p>
+                        </div>
+                    `;
+                    hideLoading(myGroupsLoading);
+                    return;
+                }
                 
-                // Luego buscar en grupos publicados del usuario
-                const snapshotGrupos = await database.ref('grupos').orderByChild('userid').equalTo(currentUserId).once('value');
+                // Cargar todo en paralelo
+                const [snapshotSolicitudes, snapshotGrupos] = await Promise.all([
+                    database.ref('solicitudes').orderByChild('userid').equalTo(currentUserId).once('value'),
+                    database.ref('grupos').orderByChild('userid').equalTo(currentUserId).once('value')
+                ]);
+
+                const misSolicitudes = snapshotSolicitudes.val();
                 const misGruposPublicados = snapshotGrupos.val();
                 
                 if (!misSolicitudes && !misGruposPublicados) {
                     myGroupsContainer.innerHTML = `
                         <div class="my-group-placeholder">
                             <p style="text-align: center; color: #bbb; padding: 40px 20px;">
-                                Tus grupos publicados aparecerán aquí. Publica tu primer grupo para comenzar.
+                                Tus grupos publicados aparecerán aquí.
                             </p>
                         </div>
                     `;
@@ -2343,21 +2853,28 @@
                 }
                 
                 myGroupsContainer.innerHTML = '';
+                const allGroups = [];
                 
-                // Agregar solicitudes pendientes
                 if (misSolicitudes) {
                     for (const key in misSolicitudes) {
-                        const grupo = misSolicitudes[key];
-                        await createMyGroupCard(grupo, key, 'solicitud');
+                        allGroups.push({ key, ...misSolicitudes[key], tipo: 'solicitud' });
                     }
                 }
                 
-                // Agregar grupos publicados del usuario
                 if (misGruposPublicados) {
                     for (const key in misGruposPublicados) {
-                        const grupo = misGruposPublicados[key];
-                        await createMyGroupCard(grupo, key, 'grupo');
+                        allGroups.push({ key, ...misGruposPublicados[key], tipo: 'grupo' });
                     }
+                }
+                
+                allGroups.sort((a, b) => {
+                    const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                    const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                    return dateB - dateA;
+                });
+                
+                for (const groupObj of allGroups) {
+                    await createMyGroupCard(groupObj, groupObj.key, groupObj.tipo);
                 }
                 
                 hideLoading(myGroupsLoading);
@@ -2372,14 +2889,15 @@
             }
         }
         
-        // Cargar datos del admin
         async function loadAdminData() {
-            await loadPendingRequests();
-            await loadAdminPublishedGroups();
-            await updateAdminStats();
+            // Paralelizar cargas de admin
+            await Promise.all([
+                loadPendingRequests(),
+                loadAdminPublishedGroups(),
+                updateAdminStats()
+            ]);
         }
         
-        // Cargar solicitudes pendientes (admin) - AJUSTADO A TU ESTRUCTURA
         async function loadPendingRequests() {
             showLoading(pendingLoading);
             requestsContainer.innerHTML = '';
@@ -2392,7 +2910,7 @@
                     requestsContainer.innerHTML = `
                         <div class="request-placeholder">
                             <p style="text-align: center; color: #bbb; padding: 40px 20px;">
-                                No hay solicitudes pendientes. Las solicitudes de publicación aparecerán aquí.
+                                No hay solicitudes pendientes.
                             </p>
                         </div>
                     `;
@@ -2402,12 +2920,18 @@
                 
                 requestsContainer.innerHTML = '';
                 
-                for (const key in solicitudes) {
-                    const solicitud = solicitudes[key];
-                    // Mostrar solo solicitudes con estado "pending" o sin estado definido
-                    const estado = solicitud.estado || solicitud.status || '';
+                const solicitudesArray = Object.entries(solicitudes).map(([key, value]) => ({ key, ...value }));
+                
+                solicitudesArray.sort((a, b) => {
+                    const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                    const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                    return dateB - dateA;
+                });
+                
+                for (const solicitudObj of solicitudesArray) {
+                    const estado = solicitudObj.estado || solicitudObj.status || '';
                     if (estado === "pendiente" || estado === "pending" || estado === "") {
-                        await createRequestCard(solicitud, key);
+                        await createRequestCard(solicitudObj, solicitudObj.key);
                     }
                 }
                 
@@ -2415,15 +2939,9 @@
             } catch (error) {
                 console.error('Error cargando solicitudes:', error);
                 hideLoading(pendingLoading);
-                requestsContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #e74c3c;">
-                        Error al cargar las solicitudes.
-                    </div>
-                `;
             }
         }
         
-        // Cargar grupos publicados (admin) - AJUSTADO A TU ESTRUCTURA
         async function loadAdminPublishedGroups() {
             showLoading(publishedLoading);
             adminPublishedContainer.innerHTML = '';
@@ -2436,7 +2954,7 @@
                     adminPublishedContainer.innerHTML = `
                         <div class="published-placeholder">
                             <p style="text-align: center; color: #bbb; padding: 40px 20px;">
-                                No hay grupos publicados aún.
+                                No hay grupos publicados.
                             </p>
                         </div>
                     `;
@@ -2446,140 +2964,79 @@
                 
                 adminPublishedContainer.innerHTML = '';
                 
-                for (const key in grupos) {
-                    const grupo = grupos[key];
-                    // Solo mostrar grupos publicados en el panel de admin también
-                    const estado = grupo.estado || grupo.status || '';
+                const gruposArray = Object.entries(grupos).map(([key, value]) => ({ key, ...value }));
+                
+                gruposArray.sort((a, b) => {
+                    const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                    const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                    return dateB - dateA;
+                });
+                
+                for (const grupoObj of gruposArray) {
+                    const estado = grupoObj.estado || grupoObj.status || '';
                     if (estado === "publicado" || estado === "approved") {
-                        await createAdminPublishedCard(grupo, key);
+                        await createAdminPublishedCard(grupoObj, grupoObj.key);
                     }
                 }
                 
                 hideLoading(publishedLoading);
             } catch (error) {
-                console.error('Error cargando grupos publicados:', error);
+                console.error('Error cargando grupos admin:', error);
                 hideLoading(publishedLoading);
-                adminPublishedContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #e74c3c;">
-                        Error al cargar los grupos publicados.
-                    </div>
-                `;
             }
         }
         
-        // Cargar notificaciones (admin)
-        async function loadNotifications() {
-            showLoading(notificationsLoading);
-            notificationsContainer.innerHTML = '';
-            
-            try {
-                const snapshot = await database.ref('notificaciones').orderByChild('fecha').limitToLast(20).once('value');
-                const notificaciones = snapshot.val();
-                
-                if (!notificaciones) {
-                    notificationsContainer.innerHTML = `
-                        <div class="notification-placeholder">
-                            <p style="text-align: center; color: #bbb; padding: 40px 20px;">
-                                No hay notificaciones enviadas aún.
-                            </p>
-                        </div>
-                    `;
-                    hideLoading(notificationsLoading);
-                    return;
-                }
-                
-                notificationsContainer.innerHTML = '';
-                
-                // Convertir objeto a array y ordenar por fecha (más reciente primero)
-                const notificacionesArray = [];
-                for (const key in notificaciones) {
-                    notificacionesArray.push({
-                        key: key,
-                        ...notificaciones[key]
-                    });
-                }
-                
-                notificacionesArray.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                
-                for (const notificacion of notificacionesArray) {
-                    await createNotificationCard(notificacion, notificacion.key);
-                }
-                
-                hideLoading(notificationsLoading);
-            } catch (error) {
-                console.error('Error cargando notificaciones:', error);
-                hideLoading(notificationsLoading);
-                notificationsContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #e74c3c;">
-                        Error al cargar las notificaciones.
-                    </div>
-                `;
-            }
-        }
-        
-        // Actualizar estadísticas del admin - AJUSTADO A TU ESTRUCTURA
         async function updateAdminStats() {
             try {
-                // Contar grupos publicados (con estado "publicado" o "approved")
-                const publishedSnapshot = await database.ref('grupos').once('value');
+                // Ejecutar en paralelo
+                const [publishedSnapshot, pendingSnapshot] = await Promise.all([
+                    database.ref('grupos').once('value'),
+                    database.ref('solicitudes').once('value')
+                ]);
+
                 let publishedCount = 0;
                 const grupos = publishedSnapshot.val();
-                
                 if (grupos) {
                     for (const key in grupos) {
-                        const grupo = grupos[key];
-                        const estado = grupo.estado || grupo.status || '';
-                        if (estado === "publicado" || estado === "approved") {
-                            publishedCount++;
-                        }
+                        const estado = grupos[key].estado || grupos[key].status || '';
+                        if (estado === "publicado" || estado === "approved") publishedCount++;
                     }
                 }
                 
-                // Contar solicitudes pendientes
-                const pendingSnapshot = await database.ref('solicitudes').once('value');
                 let pendingCount = 0;
                 const solicitudes = pendingSnapshot.val();
-                
                 if (solicitudes) {
                     for (const key in solicitudes) {
-                        const solicitud = solicitudes[key];
-                        const estado = solicitud.estado || solicitud.status || '';
-                        if (estado === "pendiente" || estado === "pending" || estado === "") {
-                            pendingCount++;
-                        }
+                        const estado = solicitudes[key].estado || solicitudes[key].status || '';
+                        if (estado === "pendiente" || estado === "pending" || estado === "") pendingCount++;
                     }
                 }
                 
                 statsPublished.textContent = publishedCount;
                 statsPending.textContent = pendingCount;
             } catch (error) {
-                console.error('Error actualizando estadísticas:', error);
+                console.error('Error stats:', error);
             }
         }
         
-        // Crear tarjeta de grupo para vista principal - AJUSTADO A TU ESTRUCTURA
+        // Crear tarjetas
         async function createGroupCard(grupo, key, groupNumber, container) {
             const groupElement = document.createElement('div');
             groupElement.className = 'card';
             groupElement.setAttribute('data-group', groupNumber);
             groupElement.setAttribute('data-key', key);
             
-            // Usar etiquetas (etiquetas o tags)
             const tags = grupo.etiquetas || grupo.tags || '';
-            if (tags) {
-                groupElement.setAttribute('data-tags', tags.toLowerCase());
-            }
+            if (tags) groupElement.setAttribute('data-tags', tags.toLowerCase());
             
-            // Obtener imagen usando la función auxiliar
             const imageSrc = getImageSource(grupo);
             
-            // Usar el nombre correcto (nombre o name)
-            const nombre = grupo.nombre || grupo.name || 'Sin nombre';
-            // Usar la descripción correcta (descripcion o description)
-            const descripcion = grupo.descripcion || grupo.description || 'Sin descripción';
+            // AQUI ESTA LA CLAVE: processStickersInText ahora funciona porque stickersMap está lleno
+            let nombre = processStickersInText(grupo.nombre || grupo.name || 'Sin nombre');
+            let descripcion = processStickersInText(grupo.descripcion || grupo.description || 'Sin descripción');
             
             groupElement.innerHTML = `
-                <img src="${imageSrc}" alt="${nombre}" class="card-image">
+                <img src="${imageSrc}" alt="Grupo" class="card-image">
                 <div class="card-content">
                     <h3 class="card-title">${nombre}</h3>
                     <p class="card-description">${descripcion}</p>
@@ -2587,7 +3044,6 @@
                 </div>
             `;
             
-            // Agregar evento de clic en toda la tarjeta
             groupElement.addEventListener('click', (e) => {
                 if (!e.target.classList.contains('card-button')) {
                     openGroupDetails(key, 'grupo');
@@ -2597,23 +3053,17 @@
             container.appendChild(groupElement);
         }
         
-        // Crear tarjeta para "Mis Grupos" - AJUSTADO A TU ESTRUCTURA
         async function createMyGroupCard(grupo, key, tipo = 'grupo') {
             const groupElement = document.createElement('div');
             groupElement.className = 'card';
             groupElement.setAttribute('data-key', key);
             groupElement.setAttribute('data-tipo', tipo);
             
-            // Usar etiquetas (etiquetas o tags)
             const tags = grupo.etiquetas || grupo.tags || '';
-            if (tags) {
-                groupElement.setAttribute('data-tags', tags.toLowerCase());
-            }
+            if (tags) groupElement.setAttribute('data-tags', tags.toLowerCase());
             
-            // Determinar clase de estado según la estructura
             let statusClass = 'status-review';
             let statusText = 'Revisión';
-            
             const estado = grupo.estado || grupo.status || 'pendiente';
             
             if (estado === "publicado" || estado === "approved") {
@@ -2622,56 +3072,36 @@
             } else if (estado === "rechazado" || estado === "rejected") {
                 statusClass = 'status-rejected';
                 statusText = 'Rechazado';
-            } else if (estado === "pendiente" || estado === "pending") {
-                statusClass = 'status-review';
-                statusText = 'Revisión';
             }
             
-            // Obtener imagen usando la función auxiliar
             const imageSrc = getImageSource(grupo);
-            
-            // Usar el nombre correcto (nombre o name)
-            const nombre = grupo.nombre || grupo.name || 'Sin nombre';
-            // Usar la descripción correcta (descripcion o description)
-            const descripcion = grupo.descripcion || grupo.description || 'Sin descripción';
-            
-            // Estadísticas (vistas o views, uniones o members) - SIN VALORES ALEATORIOS
-            const views = grupo.vistas || grupo.views || 0;
-            const members = grupo.uniones || grupo.members || 0;
-            
-            // Formatear etiquetas para mostrar
+            let nombre = processStickersInText(grupo.nombre || grupo.name || 'Sin nombre');
+            let descripcion = processStickersInText(grupo.descripcion || grupo.description || 'Sin descripción');
+            const viewsCount = grupo.vistas || grupo.visualizaciones || 0;
+            const membersCount = grupo.uniones || 0;
             const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
             
             groupElement.innerHTML = `
-                <img src="${imageSrc}" alt="${nombre}" class="card-image">
+                <img src="${imageSrc}" alt="Grupo" class="card-image">
                 <div class="card-content">
                     <h3 class="card-title">${nombre}</h3>
                     <p class="card-description">${descripcion}</p>
-                    
-                    <!-- ETIQUETAS ALINEADAS A LA IZQUIERDA -->
                     <div class="my-group-tags">
                         ${tagsArray.map(tag => `<span class="my-group-tag">${tag}</span>`).join('')}
                     </div>
-                    
-                    <!-- PIE DE TARJETA CON DOS COLUMNAS -->
                     <div class="my-group-footer">
-                        <!-- ESTADÍSTICAS EN LADO IZQUIERDO -->
                         <div class="my-group-stats">
                             <div class="my-group-stat">
-                                <div class="my-group-stat-number">${views}</div>
+                                <div class="my-group-stat-number">${viewsCount}</div>
                                 <div class="my-group-stat-label">Visualizaciones</div>
                             </div>
                             <div class="my-group-stat">
-                                <div class="my-group-stat-number">${members}</div>
+                                <div class="my-group-stat-number">${membersCount}</div>
                                 <div class="my-group-stat-label">Uniones</div>
                             </div>
                         </div>
-                        
-                        <!-- ESTADO EN LADO DERECHO -->
                         <div class="group-status ${statusClass}">${statusText}</div>
                     </div>
-                    
-                    <!-- ACCIONES: EDITAR Y ELIMINAR -->
                     <div class="my-group-actions">
                         <button class="edit-group-btn" data-key="${key}" data-tipo="${tipo}">Editar</button>
                         <button class="delete-group-btn" data-key="${key}" data-tipo="${tipo}">Eliminar</button>
@@ -2679,74 +3109,33 @@
                 </div>
             `;
             
-            // Remover placeholder si existe
-            const placeholder = document.querySelector('.my-group-placeholder');
-            if (placeholder) {
-                placeholder.remove();
-            }
-            
             myGroupsContainer.prepend(groupElement);
             
-            // Agregar eventos a los botones
             groupElement.querySelector('.edit-group-btn').addEventListener('click', function(e) {
                 e.stopPropagation();
-                const key = this.getAttribute('data-key');
-                const tipo = this.getAttribute('data-tipo');
                 loadGroupForEdit(key, tipo);
             });
             
             groupElement.querySelector('.delete-group-btn').addEventListener('click', function(e) {
                 e.stopPropagation();
-                const key = this.getAttribute('data-key');
-                const tipo = this.getAttribute('data-tipo');
                 deleteGroup(key, tipo);
             });
         }
         
-        // Crear tarjeta de solicitud para admin - AJUSTADO A TU ESTRUCTURA
         async function createRequestCard(solicitud, key) {
             const requestElement = document.createElement('div');
             requestElement.className = 'request-item';
             requestElement.dataset.id = key;
             
-            // Usar etiquetas (etiquetas o tags)
-            const tags = solicitud.etiquetas || solicitud.tags || '';
-            if (tags) {
-                requestElement.setAttribute('data-tags', tags.toLowerCase());
-            }
-            
-            // Obtener imagen usando la función auxiliar
             const imageSrc = getImageSource(solicitud);
+            let nombre = processStickersInText(solicitud.nombre || solicitud.name || 'Sin nombre');
+            let descripcion = processStickersInText(solicitud.descripcion || solicitud.description || 'Sin descripción');
             
-            // Usar el nombre correcto (nombre o name)
-            const nombre = solicitud.nombre || solicitud.name || 'Sin nombre';
-            // Usar la descripción correcta (descripcion o description)
-            const descripcion = solicitud.descripcion || solicitud.description || 'Sin descripción';
-            
-            // Formatear fecha (fecha o timestamp)
             let date = 'Fecha no disponible';
-            if (solicitud.fecha) {
-                date = new Date(solicitud.fecha).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } else if (solicitud.timestamp) {
-                date = new Date(solicitud.timestamp).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
+            if (solicitud.fecha) date = new Date(solicitud.fecha).toLocaleDateString();
             
-            // Usar enlace (enlace o link)
             const enlace = solicitud.enlace || solicitud.link || '#';
-            
-            // Formatear etiquetas para mostrar
+            const tags = solicitud.etiquetas || solicitud.tags || '';
             const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
             
             requestElement.innerHTML = `
@@ -2755,7 +3144,7 @@
                     <div class="request-date">${date}</div>
                 </div>
                 <div class="request-image-container">
-                    <img src="${imageSrc}" alt="${nombre}" class="request-image">
+                    <img src="${imageSrc}" alt="Solicitud" class="request-image">
                 </div>
                 <p class="request-description">${descripcion}</p>
                 <div class="request-tags">
@@ -2771,113 +3160,57 @@
             requestsContainer.appendChild(requestElement);
         }
         
-        // Crear tarjeta de grupo publicado para admin - AJUSTADO A TU ESTRUCTURA
         async function createAdminPublishedCard(grupo, key) {
             const groupElement = document.createElement('div');
             groupElement.className = 'card';
             groupElement.setAttribute('data-key', key);
             
-            // Usar etiquetas (etiquetas o tags)
-            const tags = grupo.etiquetas || grupo.tags || '';
-            if (tags) {
-                groupElement.setAttribute('data-tags', tags.toLowerCase());
-            }
-            
-            // Obtener imagen usando la función auxiliar
             const imageSrc = getImageSource(grupo);
-            
-            // Usar el nombre correcto (nombre o name)
-            const nombre = grupo.nombre || grupo.name || 'Sin nombre';
-            // Usar la descripción correcta (descripcion o description)
-            const descripcion = grupo.descripcion || grupo.description || 'Sin descripción';
-            
-            // Estadísticas (vistas o views, uniones o members) - SIN VALORES ALEATORIOS
-            const views = grupo.vistas || grupo.views || 0;
-            const members = grupo.uniones || grupo.members || 0;
-            
-            // Formatear etiquetas para mostrar
+            let nombre = processStickersInText(grupo.nombre || grupo.name || 'Sin nombre');
+            let descripcion = processStickersInText(grupo.descripcion || grupo.description || 'Sin descripción');
+            const viewsCount = grupo.vistas || grupo.visualizaciones || 0;
+            const membersCount = grupo.uniones || 0;
+            const tags = grupo.etiquetas || grupo.tags || '';
             const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
             
             groupElement.innerHTML = `
-                <img src="${imageSrc}" alt="${nombre}" class="card-image">
+                <img src="${imageSrc}" alt="Grupo" class="card-image">
                 <div class="card-content">
                     <h3 class="card-title">${nombre}</h3>
                     <p class="card-description">${descripcion}</p>
-                    
                     <div class="my-group-tags">
                         ${tagsArray.map(tag => `<span class="my-group-tag">${tag}</span>`).join('')}
                     </div>
-                    
                     <div class="my-group-footer">
                         <div class="my-group-stats">
                             <div class="my-group-stat">
-                                <div class="my-group-stat-number">${views}</div>
+                                <div class="my-group-stat-number">${viewsCount}</div>
                                 <div class="my-group-stat-label">Visualizaciones</div>
                             </div>
                             <div class="my-group-stat">
-                                <div class="my-group-stat-number">${members}</div>
+                                <div class="my-group-stat-number">${membersCount}</div>
                                 <div class="my-group-stat-label">Uniones</div>
                             </div>
                         </div>
-                        
                         <div class="group-status status-published">Publicado</div>
                     </div>
-                    
-                    <!-- BOTÓN PARA ELIMINAR GRUPO PUBLICADO DESDE ADMIN -->
-                    <button class="admin-delete-btn" data-key="${key}">Eliminar Grupo</button>
+                    <div class="my-group-actions">
+                        <button class="admin-delete-btn" data-key="${key}">Eliminar Grupo</button>
+                    </div>
                 </div>
             `;
             
             adminPublishedContainer.appendChild(groupElement);
             
-            // Agregar evento al botón de eliminar
             groupElement.querySelector('.admin-delete-btn').addEventListener('click', function(e) {
                 e.stopPropagation();
-                const key = this.getAttribute('data-key');
                 deletePublishedGroupFromAdmin(key);
             });
         }
         
-        // Crear tarjeta de notificación
-        async function createNotificationCard(notificacion, key) {
-            const notificationElement = document.createElement('div');
-            notificationElement.className = 'notification-item';
-            notificationElement.dataset.id = key;
-            
-            const title = notificacion.titulo || 'Notificación';
-            const message = notificacion.mensaje || notificacion.message || '';
-            const date = new Date(notificacion.fecha).toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            notificationElement.innerHTML = `
-                <div class="notification-header">
-                    <h3 class="notification-title">${title}</h3>
-                    <div class="notification-date">${date}</div>
-                </div>
-                <p class="notification-message">${message}</p>
-                <button class="delete-notification-btn" data-key="${key}">Eliminar Notificación</button>
-            `;
-            
-            notificationsContainer.appendChild(notificationElement);
-            
-            // Agregar evento al botón de eliminar
-            notificationElement.querySelector('.delete-notification-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                const key = this.getAttribute('data-key');
-                deleteNotification(key);
-            });
-        }
-        
-        // Cargar grupo para editar
         async function loadGroupForEdit(key, tipo) {
             try {
                 let grupo;
-                
                 if (tipo === 'grupo') {
                     const snapshot = await database.ref('grupos/' + key).once('value');
                     grupo = snapshot.val();
@@ -2888,26 +3221,29 @@
                 
                 if (!grupo) return;
                 
-                // Configurar modo edición
                 isEditing = true;
                 currentEditGroupKey = key;
                 currentEditGroupType = tipo;
                 editingGroupId.value = key;
                 editingGroupType.value = tipo;
                 
-                // Cargar datos en el formulario
-                document.getElementById('groupName').value = grupo.nombre || grupo.name || '';
-                document.getElementById('groupDescription').value = grupo.descripcion || grupo.description || '';
+                const nombre = grupo.nombre || grupo.name || '';
+                const descripcion = grupo.descripcion || grupo.description || '';
+                
+                groupNameHidden.value = nombre;
+                groupDescriptionHidden.value = descripcion;
+                
+                loadContentToEditable(nombre, 'name');
+                loadContentToEditable(descripcion, 'description');
+                
                 document.getElementById('groupTags').value = grupo.etiquetas || grupo.tags || '';
                 document.getElementById('groupLink').value = grupo.enlace || grupo.link || '';
                 
-                // Cargar imagen si existe
                 const imageSrc = getImageSource(grupo);
                 if (imageSrc && imageSrc.startsWith('data:image')) {
                     imagePreview.src = imageSrc;
                     imageUpload.classList.add('has-image');
                 } else if (imageSrc && imageSrc.startsWith('http')) {
-                    // Para URLs externas, mostramos la imagen directamente
                     imagePreview.src = imageSrc;
                     imageUpload.classList.add('has-image');
                 } else {
@@ -2916,12 +3252,9 @@
                 }
                 
                 uploadedImageFile = null;
-                
-                // Cambiar título y texto del botón
                 menuTitle.textContent = '✏️ ᴇᴅɪᴛᴀʀ ɢʀᴜᴘᴏ';
                 publishFooterButton.textContent = 'Actualizar y enviar a revisión';
                 
-                // Abrir menú de publicación
                 body.classList.add('menu-open');
                 body.classList.remove('show-my-groups');
                 body.classList.remove('show-admin');
@@ -2929,81 +3262,89 @@
                 updateBottomBarActive();
                 
             } catch (error) {
-                console.error('Error cargando grupo para editar:', error);
+                console.error('Error editando:', error);
                 alert('Error al cargar el grupo para editar');
             }
         }
         
-        // Eliminar grupo
         async function deleteGroup(key, tipo) {
             if (!confirm('¿Estás seguro de que quieres eliminar este grupo?')) return;
-            
             try {
-                if (tipo === 'grupo') {
-                    await database.ref('grupos/' + key).remove();
-                } else {
-                    await database.ref('solicitudes/' + key).remove();
-                }
+                if (tipo === 'grupo') await database.ref('grupos/' + key).remove();
+                else await database.ref('solicitudes/' + key).remove();
                 
                 alert('Grupo eliminado exitosamente');
-                
-                // Recargar mis grupos
                 await loadMyGroups();
-                
-                // Si era un grupo publicado, recargar también la vista principal
-                if (tipo === 'grupo') {
-                    await loadPublishedGroups();
-                }
-                
+                if (tipo === 'grupo') await loadPublishedGroups();
             } catch (error) {
-                console.error('Error eliminando grupo:', error);
                 alert('Error al eliminar el grupo');
             }
         }
         
-        // Eliminar grupo publicado desde el panel de admin
         async function deletePublishedGroupFromAdmin(key) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este grupo publicado? Esta acción no se puede deshacer.')) return;
-            
+            if (!confirm('¿Seguro que quieres eliminar este grupo publicado?')) return;
             try {
                 await database.ref('grupos/' + key).remove();
-                
-                alert('Grupo eliminado exitosamente');
-                
-                // Recargar la vista
+                alert('Grupo eliminado');
                 await loadAdminPublishedGroups();
                 await loadPublishedGroups();
                 await updateAdminStats();
-                
             } catch (error) {
-                console.error('Error eliminando grupo publicado:', error);
-                alert('Error al eliminar el grupo');
+                alert('Error al eliminar');
             }
         }
         
-        // Eliminar notificación
-        async function deleteNotification(key) {
-            if (!confirm('¿Estás seguro de que quieres eliminar esta notificación?')) return;
-            
+        async function registerView(groupKey) {
             try {
-                await database.ref('notificaciones/' + key).remove();
+                const grupoRef = database.ref('grupos/' + groupKey);
+                const snapshot = await grupoRef.once('value');
+                const grupo = snapshot.val();
+                if (!grupo) return { success: false, count: 0 };
                 
-                alert('Notificación eliminada exitosamente');
+                const sessionId = getSessionId();
+                const vistasSesiones = grupo.vistasSesiones || {};
                 
-                // Recargar notificaciones
-                await loadNotifications();
+                if (vistasSesiones[sessionId]) {
+                    return { success: false, count: grupo.vistas || 0 };
+                }
                 
+                vistasSesiones[sessionId] = { fecha: new Date().toISOString(), sessionId: sessionId };
+                const newViews = (grupo.vistas || 0) + 1;
+                
+                await grupoRef.update({ vistas: newViews, vistasSesiones: vistasSesiones });
+                return { success: true, count: newViews };
             } catch (error) {
-                console.error('Error eliminando notificación:', error);
-                alert('Error al eliminar la notificación');
+                return { success: false, count: 0 };
             }
         }
         
-        // Abrir detalles del grupo - AJUSTADO A TU ESTRUCTURA
+        async function registerJoin(groupKey) {
+            try {
+                const grupoRef = database.ref('grupos/' + groupKey);
+                const snapshot = await grupoRef.once('value');
+                const grupo = snapshot.val();
+                if (!grupo) return { success: false, count: 0 };
+                
+                const sessionId = getSessionId();
+                const unionesSesiones = grupo.unionesSesiones || {};
+                
+                if (unionesSesiones[sessionId]) {
+                    return { success: false, count: grupo.uniones || 0 };
+                }
+                
+                unionesSesiones[sessionId] = { fecha: new Date().toISOString(), sessionId: sessionId };
+                const newMembers = (grupo.uniones || 0) + 1;
+                
+                await grupoRef.update({ uniones: newMembers, unionesSesiones: unionesSesiones });
+                return { success: true, count: newMembers };
+            } catch (error) {
+                return { success: false, count: 0 };
+            }
+        }
+        
         async function openGroupDetails(key, type) {
             try {
                 let grupo;
-                
                 if (type === 'grupo') {
                     const snapshot = await database.ref('grupos/' + key).once('value');
                     grupo = snapshot.val();
@@ -3013,43 +3354,19 @@
                 }
                 
                 if (!grupo) return;
-                
                 currentGroupDetails = { key, grupo, type };
                 
-                // Actualizar UI con datos del grupo
-                const nombre = grupo.nombre || grupo.name || 'Sin nombre';
-                const descripcion = grupo.descripcion || grupo.description || 'Sin descripción';
-                const enlace = grupo.enlace || grupo.link || '#';
+                let nombre = processStickersInText(grupo.nombre || grupo.name || 'Sin nombre');
+                let descripcion = processStickersInText(grupo.descripcion || grupo.description || 'Sin descripción');
                 
-                document.getElementById('groupTitle').textContent = nombre;
-                document.getElementById('groupDescriptionDetails').textContent = descripcion;
-                document.getElementById('joinButton').href = enlace;
+                document.getElementById('groupTitle').innerHTML = nombre;
+                document.getElementById('groupDescriptionDetails').innerHTML = descripcion;
+                document.getElementById('groupImageLarge').src = getImageSource(grupo);
                 
-                // Obtener imagen usando la función auxiliar
-                const imageSrc = getImageSource(grupo);
-                document.getElementById('groupImageLarge').src = imageSrc;
-                
-                // Formatear fecha
                 let fecha = 'Fecha no disponible';
-                if (grupo.fecha) {
-                    fecha = new Date(grupo.fecha).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                    document.getElementById('publishDate').textContent = `Publicado: ${fecha}`;
-                } else if (grupo.timestamp) {
-                    fecha = new Date(grupo.timestamp).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                    document.getElementById('publishDate').textContent = `Publicado: ${fecha}`;
-                } else {
-                    document.getElementById('publishDate').textContent = 'Fecha no disponible';
-                }
+                if (grupo.fecha) fecha = new Date(grupo.fecha).toLocaleDateString();
+                document.getElementById('publishDate').textContent = `Publicado: ${fecha}`;
                 
-                // Actualizar etiquetas
                 const tagsContainer = document.getElementById('groupTagsDetails');
                 tagsContainer.innerHTML = '';
                 const tags = grupo.etiquetas || grupo.tags || '';
@@ -3065,196 +3382,115 @@
                     });
                 }
                 
-                // Actualizar estadísticas - SIN VALORES ALEATORIOS
-                const views = grupo.vistas || grupo.views || 0;
-                const members = grupo.uniones || grupo.members || 0;
+                document.getElementById('viewsCount').textContent = grupo.vistas || 0;
+                document.getElementById('membersCount').textContent = grupo.uniones || 0;
                 
-                document.getElementById('viewsCount').textContent = views;
-                document.getElementById('membersCount').textContent = members;
+                if (type === 'grupo') {
+                    const result = await registerView(key);
+                    if (result.success) document.getElementById('viewsCount').textContent = result.count;
+                }
                 
                 body.classList.add('group-details-open');
             } catch (error) {
-                console.error('Error abriendo detalles del grupo:', error);
-                alert('Error al cargar los detalles del grupo');
+                console.error('Error detalles:', error);
             }
         }
         
-        // Cerrar detalles del grupo
+        async function updateCardCounters(groupKey, type, newValue) {
+            const cards = document.querySelectorAll(`.card[data-key="${groupKey}"]`);
+            cards.forEach(card => {
+                const statElements = card.querySelectorAll('.my-group-stat-number');
+                if (type === 'views' && statElements.length > 0) statElements[0].textContent = newValue;
+                else if (type === 'members' && statElements.length > 1) statElements[1].textContent = newValue;
+            });
+        }
+        
         const closeGroupDetails = () => {
             body.classList.remove('group-details-open');
         };
         
         backButton.addEventListener('click', closeGroupDetails);
         
-        // Aceptar solicitud (admin) - AJUSTADO A TU ESTRUCTURA
-        window.acceptRequest = async function(requestKey) {
-            if (!confirm('¿Estás seguro de que quieres aceptar esta solicitud?')) return;
-            
-            try {
-                // Obtener la solicitud
-                const snapshot = await database.ref('solicitudes/' + requestKey).once('value');
-                const solicitud = snapshot.val();
-                
-                if (!solicitud) {
-                    alert('No se encontró la solicitud');
-                    return;
+        joinButton.addEventListener('click', async () => {
+            if (currentGroupDetails && currentGroupDetails.type === 'grupo') {
+                const result = await registerJoin(currentGroupDetails.key);
+                if (result.success) {
+                    document.getElementById('membersCount').textContent = result.count;
+                    await updateCardCounters(currentGroupDetails.key, 'members', result.count);
+                    await loadPublishedGroups();
+                    await loadMyGroups();
                 }
                 
-                // Crear objeto de grupo aprobado según tu estructura
-                const grupoAprobado = {
-                    nombre: solicitud.nombre || solicitud.name || 'Sin nombre',
-                    descripcion: solicitud.descripcion || solicitud.description || 'Sin descripción',
-                    etiquetas: solicitud.etiquetas || solicitud.tags || '',
-                    enlace: solicitud.enlace || solicitud.link || '#',
-                    imagen: solicitud.imagen || solicitud.imageBase64 || null,
-                    userid: solicitud.userid || solicitud.userId || currentUserId,
-                    estado: "publicado",
-                    fecha: new Date().toISOString(),
-                    fechaModificacion: new Date().toISOString(),
-                    vistas: solicitud.vistas || solicitud.views || 0, // SIN VALORES ALEATORIOS
-                    uniones: solicitud.uniones || solicitud.members || 0, // SIN VALORES ALEATORIOS
-                    corazones: solicitud.corazones || 0
-                };
-                
-                // Agregar a grupos aprobados
-                const newGroupRef = database.ref('grupos').push();
-                await newGroupRef.set(grupoAprobado);
-                
-                // Actualizar estado de la solicitud
-                await database.ref('solicitudes/' + requestKey).update({
-                    estado: "publicado",
-                    status: "approved",
-                    fechaModificacion: new Date().toISOString()
-                });
-                
-                // Actualizar estadísticas y vista
-                await updateAdminStats();
-                await loadPendingRequests();
-                await loadAdminPublishedGroups();
-                await loadPublishedGroups();
-                
-                alert('Solicitud aceptada y publicada exitosamente');
-            } catch (error) {
-                console.error('Error aceptando solicitud:', error);
-                alert('Error al aceptar la solicitud');
-            }
-        };
-        
-        // Rechazar solicitud (admin) - AJUSTADO A TU ESTRUCTURA
-        window.rejectRequest = async function(requestKey) {
-            if (!confirm('¿Estás seguro de que quieres rechazar esta solicitud?')) return;
-            
-            try {
-                // Actualizar estado de la solicitud
-                await database.ref('solicitudes/' + requestKey).update({
-                    estado: "rechazado",
-                    status: "rejected",
-                    fechaModificacion: new Date().toISOString()
-                });
-                
-                // Actualizar estadísticas y vista
-                await updateAdminStats();
-                await loadPendingRequests();
-                
-                alert('Solicitud rechazada exitosamente');
-            } catch (error) {
-                console.error('Error rechazando solicitud:', error);
-                alert('Error al rechazar la solicitud');
-            }
-        };
-        
-        // Enviar notificación a todos los usuarios
-        sendNotificationButton.addEventListener('click', async () => {
-            const title = notificationTitle.value.trim();
-            const message = notificationMessage.value.trim();
-            
-            if (!message) {
-                alert('Por favor, ingresa un mensaje para la notificación');
-                return;
-            }
-            
-            // Deshabilitar botón mientras se envía
-            sendNotificationButton.disabled = true;
-            sendNotificationButton.textContent = 'Enviando...';
-            
-            try {
-                const notificacion = {
-                    titulo: title || 'Notificación del Administrador',
-                    mensaje: message,
-                    fecha: new Date().toISOString(),
-                    enviadoPor: 'admin',
-                    userId: currentUserId
-                };
-                
-                await database.ref('notificaciones').push(notificacion);
-                
-                // Limpiar formulario
-                notificationTitle.value = '';
-                notificationMessage.value = '';
-                
-                alert('Notificación enviada exitosamente a todos los usuarios');
-                
-                // Recargar notificaciones
-                await loadNotifications();
-                
-            } catch (error) {
-                console.error('Error enviando notificación:', error);
-                alert('Error al enviar la notificación');
-            } finally {
-                // Restaurar botón
-                sendNotificationButton.disabled = false;
-                sendNotificationButton.textContent = 'Enviar Notificación';
+                const enlace = currentGroupDetails.grupo.enlace || currentGroupDetails.grupo.link || '#';
+                if (enlace !== '#') window.open(enlace, '_blank');
+            } else {
+                alert('No se puede unir a este grupo en este momento.');
             }
         });
         
-        // Publicar o actualizar grupo (usuario) - AJUSTADO A TU ESTRUCTURA
+        window.acceptRequest = async function(requestKey) {
+            if (!confirm('¿Aceptar solicitud?')) return;
+            try {
+                const snapshot = await database.ref('solicitudes/' + requestKey).once('value');
+                const solicitud = snapshot.val();
+                
+                const grupoAprobado = {
+                    nombre: solicitud.nombre || solicitud.name,
+                    descripcion: solicitud.descripcion || solicitud.description,
+                    etiquetas: solicitud.etiquetas || solicitud.tags,
+                    enlace: solicitud.enlace || solicitud.link,
+                    imagen: solicitud.imagen || solicitud.imageBase64 || null,
+                    userid: solicitud.userid || null,
+                    estado: "publicado",
+                    fecha: new Date().toISOString(),
+                    vistas: 0,
+                    uniones: 0,
+                    vistasSesiones: {},
+                    unionesSesiones: {}
+                };
+                
+                await database.ref('grupos/' + requestKey).set(grupoAprobado);
+                await database.ref('solicitudes/' + requestKey).remove();
+                
+                await updateAdminStats();
+                await loadPendingRequests();
+                await loadPublishedGroups();
+                alert('Solicitud aceptada');
+            } catch (error) {
+                alert('Error');
+            }
+        };
+        
+        window.rejectRequest = async function(requestKey) {
+            if (!confirm('¿Rechazar solicitud?')) return;
+            try {
+                await database.ref('solicitudes/' + requestKey).update({ estado: "rechazado", status: "rejected" });
+                await updateAdminStats();
+                await loadPendingRequests();
+                alert('Solicitud rechazada');
+            } catch (error) {
+                alert('Error');
+            }
+        };
+        
         publishFooterButton.addEventListener('click', async () => {
-            const groupName = document.getElementById('groupName').value.trim();
-            const groupDescription = document.getElementById('groupDescription').value.trim();
+            const groupName = groupNameHidden.value.trim();
+            const groupDescription = groupDescriptionHidden.value.trim();
             const groupTags = document.getElementById('groupTags').value.trim();
             const groupLink = document.getElementById('groupLink').value.trim();
             
-            // Validaciones
-            if (!groupName) {
-                alert('Por favor, ingresa un nombre para el grupo');
+            if (!groupName || !groupDescription || !groupTags || !groupLink) {
+                alert('Completa todos los campos');
                 return;
             }
             
-            if (!groupDescription) {
-                alert('Por favor, ingresa una descripción para el grupo');
-                return;
-            }
-            
-            if (!groupTags) {
-                alert('Por favor, ingresa al menos una etiqueta para el grupo');
-                return;
-            }
-            
-            if (!groupLink) {
-                alert('Por favor, ingresa un enlace para el grupo');
-                return;
-            }
-            
-            // Validar URL
-            try {
-                new URL(groupLink);
-            } catch (e) {
-                alert('Por favor, ingresa una URL válida');
-                return;
-            }
-            
-            // Mostrar mensaje de carga
             publishFooterButton.disabled = true;
-            publishFooterButton.textContent = isEditing ? 'Actualizando...' : 'Publicando...';
             
             try {
                 let imagenBase64 = null;
-                
-                // Convertir imagen a base64 si hay una seleccionada
                 if (uploadedImageFile) {
                     imagenBase64 = await convertImageToBase64(uploadedImageFile);
                 } else if (isEditing) {
-                    // Si estamos editando y no se subió nueva imagen, mantener la existente
                     let grupoExistente;
                     if (currentEditGroupType === 'grupo') {
                         const snapshot = await database.ref('grupos/' + currentEditGroupKey).once('value');
@@ -3263,14 +3499,10 @@
                         const snapshot = await database.ref('solicitudes/' + currentEditGroupKey).once('value');
                         grupoExistente = snapshot.val();
                     }
-                    
-                    if (grupoExistente) {
-                        imagenBase64 = grupoExistente.imagen || grupoExistente.imageBase64 || null;
-                    }
+                    if (grupoExistente) imagenBase64 = grupoExistente.imagen || grupoExistente.imageBase64 || null;
                 }
                 
                 if (isEditing) {
-                    // MODO EDICIÓN: Enviar a revisión nuevamente
                     const solicitudActualizada = {
                         nombre: groupName,
                         descripcion: groupDescription,
@@ -3279,106 +3511,68 @@
                         imagen: imagenBase64,
                         userid: currentUserId,
                         estado: "pendiente",
-                        fecha: new Date().toISOString(),
-                        fechaModificacion: new Date().toISOString(),
-                        vistas: 0, // SIN VALORES ALEATORIOS
-                        uniones: 0, // SIN VALORES ALEATORIOS
-                        corazones: 0
+                        fecha: new Date().toISOString()
                     };
                     
-                    // Si el grupo estaba publicado, eliminarlo de "grupos"
-                    if (currentEditGroupType === 'grupo') {
-                        await database.ref('grupos/' + currentEditGroupKey).remove();
-                    }
+                    if (currentEditGroupType === 'grupo') await database.ref('grupos/' + currentEditGroupKey).remove();
                     
-                    // Crear nueva solicitud (o actualizar si ya era una solicitud)
-                    if (currentEditGroupType === 'solicitud') {
-                        await database.ref('solicitudes/' + currentEditGroupKey).update(solicitudActualizada);
-                    } else {
-                        await database.ref('solicitudes').push(solicitudActualizada);
-                    }
+                    if (currentEditGroupType === 'solicitud') await database.ref('solicitudes/' + currentEditGroupKey).update(solicitudActualizada);
+                    else await database.ref('solicitudes').push(solicitudActualizada);
                     
-                    // Cerrar menú
                     closePublishMenu();
-                    
-                    // Mostrar mensaje de éxito
-                    alert('Grupo actualizado y enviado para revisión. Se ha quitado de la vista pública hasta que sea aprobado nuevamente.');
-                    
-                    // Recargar "Mis grupos" y vista principal
+                    alert('Grupo actualizado y enviado a revisión.');
                     await loadMyGroups();
                     await loadPublishedGroups();
                     
                 } else {
-                    // MODO CREACIÓN: Nueva publicación
+                    const userId = generateUserIdForPublishing();
                     const solicitud = {
                         nombre: groupName,
                         descripcion: groupDescription,
                         etiquetas: groupTags,
                         enlace: groupLink,
                         imagen: imagenBase64,
-                        userid: currentUserId,
+                        userid: userId,
                         estado: "pendiente",
                         fecha: new Date().toISOString(),
-                        vistas: 0, // SIN VALORES ALEATORIOS
-                        uniones: 0, // SIN VALORES ALEATORIOS
-                        corazones: 0
+                        vistas: 0, uniones: 0
                     };
                     
                     await database.ref('solicitudes').push(solicitud);
-                    
-                    // Limpiar formulario
                     resetPublishForm();
-                    
-                    // Cerrar menú
                     closePublishMenu();
-                    
-                    alert('¡Grupo enviado para revisión! Un administrador lo revisará pronto.');
-                    
-                    // Cambiar a la vista de "Mis Grupos"
+                    alert('Grupo enviado a revisión.');
                     body.classList.add('show-my-groups');
-                    updateSearchIconVisibility();
                     updateBottomBarActive();
-                    
                     await loadMyGroups();
                 }
-                
             } catch (error) {
-                console.error('Error publicando/actualizando grupo:', error);
-                alert('Error al procesar el grupo. Intenta de nuevo.');
+                console.error(error);
+                alert('Error');
             } finally {
-                // Restaurar botón
                 publishFooterButton.disabled = false;
-                publishFooterButton.textContent = isEditing ? 'Actualizar y enviar a revisión' : 'Publicar grupo';
             }
         });
         
-        // Cerrar menús con tecla Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (body.classList.contains('menu-open')) {
-                    closePublishMenu();
-                }
-                if (body.classList.contains('group-details-open')) {
-                    closeGroupDetails();
-                }
-                if (searchBar.style.display === 'flex') {
-                    toggleSearchBar(false);
-                }
-            }
-        });
-        
-        // Inicializar la aplicación
+        // ========== DOM CONTENT LOADED OPTIMIZADO ==========
         window.addEventListener('DOMContentLoaded', async () => {
-            // Registrar usuario y obtener/crear ID
-            await registerUser(currentUserId);
+            currentUserId = getOrCreateUserId();
+            if (currentUserId) await updateUserLastConnection(currentUserId);
             
-            // Cargar grupos publicados al inicio
-            await loadPublishedGroups();
+            // CARGA PARALELA: Cargamos Stickers y Grupos a la vez para mejorar velocidad
+            // La función loadStickersData llenará el mapa ANTES de que loadPublishedGroups termine si es posible,
+            // pero si no, hemos puesto un await dentro de loadPublishedGroups también.
+            // Promise.all espera a que AMBOS terminen antes de seguir, pero como son promesas,
+            // se inician simultáneamente.
             
-            // Inicializar visibilidad de lupa
+            showLoading(mainLoading);
+            
+            await Promise.all([
+                loadStickersData(),
+                loadPublishedGroups()
+            ]);
+            
             updateSearchIconVisibility();
-            
-            // Inicializar estado activo de barra inferior
             updateBottomBarActive();
         });
     </script>
